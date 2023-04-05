@@ -1,0 +1,9 @@
+{
+  "platforms": ["android"],
+  "ios": {
+    "modules": ["ExpoZebraScannerModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.zebrascanner.ExpoZebraScannerModule"]
+  }
+}

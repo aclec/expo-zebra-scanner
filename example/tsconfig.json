@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "expo-zebra-scanner": ["../src/index"],
+      "expo-zebra-scanner/*": ["../src/*"]
+    }
+  }
+}
