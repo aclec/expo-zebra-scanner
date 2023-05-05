@@ -14,5 +14,12 @@ public class ExpoZebraScannerModule: Module {
     Function("hello") {
       return "Hello world! 👋"
     }
+
+    Function("startScan") {
+      return "ExpoZebraScanner not available on IOS."
+    }
+    Function("stopScan") {
+      return "ExpoZebraScanner not available on IOS."
+    }
   }
 }
