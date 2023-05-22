@@ -1,5 +1,8 @@
 # expo-zebra-scanner
 
+- Use Hermes Engine
+- Create custom expo dev build to use in development
+
 ## Installation
 
 ```js
