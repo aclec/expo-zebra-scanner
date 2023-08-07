@@ -1,6 +1,6 @@
 {
   "name": "expo-zebra-scanner",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "My new module",
   "main": "build/index.js",
   "types": "build/index.d.ts",
