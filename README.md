@@ -26,7 +26,7 @@ export default function MyCompnent(){
 
     useEffect(() => {
         
-        const listner = ExpoZebraScanner.addListener(event => {
+        const listener = ExpoZebraScanner.addListener(event => {
         
             const { scanData, scanLabelType } = event;
             // ...
@@ -36,8 +36,8 @@ export default function MyCompnent(){
 
 
         return () => {
-            ExpoZebraScanner.removeListener(listner);
             ExpoZebraScanner.stopScan();
+            listener.remove();
         }
 
     },[])
