@@ -1,7 +1,7 @@
 {
   "name": "expo-zebra-scanner",
-  "version": "1.2.0",
-  "description": "My new module",
+  "version": "2.0.0",
+  "description": "Module to use Zebra Scanner with React Native Expo",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
@@ -33,7 +33,7 @@
   "dependencies": {},
   "devDependencies": {
     "@types/react": "^18.0.25",
-    "@types/react-native": "^0.70.6",
+    "@types/react-native": "^0.73.0",
     "expo-module-scripts": "^3.0.4",
     "expo-modules-core": "^1.1.0"
   },
