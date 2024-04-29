@@ -2,6 +2,7 @@
 
 - Use Hermes Engine
 - Create custom expo dev build to use in development
+  https://docs.expo.dev/develop/development-builds/introduction/
 
 ## Installation
 
@@ -11,9 +12,16 @@ npm install expo-zebra-scanner
 ```
 
 ## DataWedgeConfiguration
+To configure DataWedge, you need to use the native app of zebra:
+https://techdocs.zebra.com/datawedge/latest/guide/settings/
+
+- Create a new profile and allow your app (com.exemple.app)
+- Enable Bardcode
+- Enable Intent (with configuration below)
+
 ```js
-ACTION => com.symbol.datawedge.ACTION_BARCODE_SCANNED
 Intent => Broadcast Diffusion
+ACTION => com.symbol.datawedge.ACTION_BARCODE_SCANNED
 ```
 
 ## Usage
