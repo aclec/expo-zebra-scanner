@@ -15,6 +15,7 @@ npm install expo-zebra-scanner
 To configure DataWedge, you need to use the native app of zebra:  
 https://techdocs.zebra.com/datawedge/latest/guide/settings/
 
+- Disable default profile
 - Create a new profile and allow your app (com.exemple.app)
 - Enable Bardcode
 - Enable Intent (with configuration below)
