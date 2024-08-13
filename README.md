@@ -23,6 +23,7 @@ https://techdocs.zebra.com/datawedge/latest/guide/settings/
 ```js
 Intent => Broadcast Diffusion
 ACTION => com.symbol.datawedge.ACTION_BARCODE_SCANNED
+=> Look at the screenshots in the DataWedge directory.
 ```
 
 ## Usage
