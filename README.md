@@ -18,12 +18,11 @@ https://techdocs.zebra.com/datawedge/latest/guide/settings/
 - Disable default profile
 - Create a new profile and allow your app (com.exemple.app)
 - Enable Bardcode
-- Enable Intent (with configuration below)
+- Enable Intent (with configuration below & screenshots in dataWedge directory)
 
 ```js
 Intent => Broadcast Diffusion
 ACTION => com.symbol.datawedge.ACTION_BARCODE_SCANNED
-=> Look at the screenshots in the DataWedge directory.
 ```
 
 ## Usage
