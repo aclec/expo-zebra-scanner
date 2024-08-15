@@ -12,6 +12,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
 
 const val ACTION_BARCODE_SCANNED = "com.symbol.datawedge.ACTION_BARCODE_SCANNED"
 const val scanEvent = "onBarcodeScanned"
@@ -67,6 +70,86 @@ class ExpoZebraScannerModule : Module() {
       }
     }
 
+    // Ported from https://github.com/darryncampbell/react-native-datawedge-intents
+    // Credits to @darryncampbell
+    Function("sendBroadcast") { obj: Map<String, Any?> ->
+      val action: String? = obj["action"] as? String
+      val intent = Intent()
+
+      if (action != null) {
+        intent.action = action
+      }
+
+      val extrasMap: Map<String, Any?>? = obj["extras"] as? Map<String, Any?>
+
+      extrasMap?.forEach { (key, value) ->
+        val valueStr = value.toString()
+
+        when (value) {
+          is Boolean -> intent.putExtra(key, value)
+          is Int -> intent.putExtra(key, value)
+          is Long -> intent.putExtra(key, value)
+          is Double -> intent.putExtra(key, value)
+          else -> {
+            if (valueStr.startsWith("{")) {
+              val bundle = toBundle(JSONObject(valueStr))
+              intent.putExtra(key, bundle)
+            } else {
+              intent.putExtra(key, valueStr)
+            }
+          }
+        }
+      }
+
+      appContext?.reactContext?.sendBroadcast(intent)
+    }
+
+  }
+
+  // Ported from https://github.com/darryncampbell/react-native-datawedge-intents
+  // Credits to @darryncampbell
+  private fun toBundle(obj: JSONObject?): Bundle? {
+    if (obj == null) {
+      return null
+    }
+    val returnBundle = Bundle()
+    try {
+      val keys = obj.keys()
+      while (keys.hasNext()) {
+        val key = keys.next()
+        when (val value = obj.get(key)) {
+          is String -> returnBundle.putString(key, value)
+          is Boolean -> returnBundle.putBoolean(key, value)
+          is Int -> returnBundle.putInt(key, value)
+          is Long -> returnBundle.putLong(key, value)
+          is Double -> returnBundle.putDouble(key, value)
+          is JSONArray -> {
+            if (value.length() > 0) {
+              when (value.get(0)) {
+                is String -> {
+                  val stringArray = Array(value.length()) { i -> value.getString(i) }
+                  returnBundle.putStringArray(key, stringArray)
+                }
+                is Int -> {
+                  val intArray = IntArray(value.length()) { i -> value.getInt(i) }
+                  returnBundle.putIntArray(key, intArray)
+                }
+                is JSONObject -> {
+                  val bundleArray = Array(value.length()) { i -> toBundle(value.getJSONObject(i)) }
+                  returnBundle.putParcelableArray(key, bundleArray)
+                }
+                else -> throw IllegalArgumentException("Unsupported JSONArray type for key: $key")
+              }
+            }
+          }
+          is JSONObject -> returnBundle.putBundle(key, toBundle(value))
+          else -> throw IllegalArgumentException("Unsupported type for key: $key")
+        }
+      }
+    } catch (e: JSONException) {
+       e.printStackTrace()
+    }
+    return returnBundle
   }
 
 }
