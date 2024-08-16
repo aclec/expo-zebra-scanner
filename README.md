@@ -14,14 +14,14 @@ npm install expo-zebra-scanner
 
 ## DataWedgeConfiguration
 
-##### Option 1: Manually configure DataWedge
+#### Option 1: Manually configure DataWedge
 
 To configure DataWedge, you need to use the native app of zebra:
 https://techdocs.zebra.com/datawedge/latest/guide/settings/
 
 - Disable default profile
-- Create a new profile and allow your app (com.exemple.app)
-- Enable Bardcode
+- Create a new profile and allow your app (com.example.app)
+- Enable Barcode
 - Enable Intent (with configuration below & screenshots in dataWedge directory)
 
 ```js
@@ -29,11 +29,26 @@ Intent => Broadcast Diffusion
 ACTION => com.symbol.datawedge.ACTION_BARCODE_SCANNED
 ```
 
-##### Option 2: Create a profile with code
+#### Option 2: Create a profile with code
 
-You can create and configure a custom DataWedge profile in-app to avoid manual setup for each Zebra device with `sendActionCommand()` or `sendBroadcast()`.
+You can create and configure a custom DataWedge profile with `sendBroadcast()` or `sendActionCommand()` or you can opt for a basic intent output profile provided by this package.
 
-Example to setup a profile with intent output (same as option 1):
+##### Basic default profile
+
+With `createIntentDatawedgeProfile()` you can create a preconfigured profile with intent output enabled. The parameters are the name of the profile (can be anything) and the package of your app:
+
+```js
+const createBasicProfile = () => {
+    ExpoZebraScanner.createIntentDatawedgeProfile({
+        PROFILE_NAME: 'ExpoDatawedgeExample',
+        PACKAGE_NAME: 'expo.modules.zebrascanner.example',
+    });
+};
+```
+
+##### Custom profile
+
+With `sendActionCommand()` you can create a profile with the configuration you want:
 
 ```js
 const createProfile = () => {
@@ -108,33 +123,28 @@ const CONFIGURE_KEYSTROKE = {
 ## Usage
 
 ```js
-import React, {useEffect} from "react";
-import * as ExpoZebraScanner from "expo-zebra-scanner";
+import React, { useEffect } from 'react';
+import * as ExpoZebraScanner from 'expo-zebra-scanner';
 
-export default function MyCompnent(){
+export default function MyComponent() {
+  useEffect(() => {
+    const listener = ExpoZebraScanner.addListener(event => {
+      const { scanData, scanLabelType } = event;
+      // Do something with scanData
+    });
 
-    useEffect(() => {
-      
-        const listener = ExpoZebraScanner.addListener(event => {
-      
-            const { scanData, scanLabelType } = event;
-            // ...
-          
-        });
-        ExpoZebraScanner.startScan();
+    ExpoZebraScanner.startScan();
 
+    return () => {
+      ExpoZebraScanner.stopScan();
+      listener.remove();
+    };
+  }, []);
 
-        return () => {
-            ExpoZebraScanner.stopScan();
-            listener.remove();
-        }
-
-    },[])
-
-    return (
-        <View>
-            <Text>Zebra Barcode Scanner</Text>
-        </View>
-    );
+  return (
+    <View>
+      <Text>Zebra Barcode Scanner</Text>
+    </View>
+  );
 }
 ```
