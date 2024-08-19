@@ -167,4 +167,6 @@ export default function MyComponent() {
 }
 ```
 
-Also take a look at the [example](./example/)
+Also take a look at the [example](./example/) for a slightly more complete use case with profile creation and keystroke output setup.
+
+<img src="example/ExampleApp.png" alt="Example app" width="400"/>
