@@ -49,6 +49,7 @@ class ExpoZebraScannerModule : Module() {
 
     Function("startScan") {
       val activity = appContext.activityProvider?.currentActivity
+      // appContext.reactContext.sendBroadcast();
       if(activity != null) {
 
         val filter = IntentFilter()
@@ -81,13 +82,12 @@ class ExpoZebraScannerModule : Module() {
       }
 
       val extrasMap: Map<String, Any?>? = obj["extras"] as? Map<String, Any?>
-
       extrasMap?.forEach { (key, value) ->
         val valueStr = value.toString()
 
         when (value) {
-          is Boolean -> intent.putExtra(key, value)
-          is Int -> intent.putExtra(key, value)
+          is Boolean -> intent.putExtra(key, value.toString())
+          is Int -> intent.putExtra(key, value.toString())
           is Long -> intent.putExtra(key, value)
           is Double -> intent.putExtra(key, value)
           else -> {
@@ -119,8 +119,8 @@ class ExpoZebraScannerModule : Module() {
         val key = keys.next()
         when (val value = obj.get(key)) {
           is String -> returnBundle.putString(key, value)
-          is Boolean -> returnBundle.putBoolean(key, value)
-          is Int -> returnBundle.putInt(key, value)
+          is Boolean -> returnBundle.putString(key, value.toString())
+          is Int -> returnBundle.putString(key, value.toString())
           is Long -> returnBundle.putLong(key, value)
           is Double -> returnBundle.putDouble(key, value)
           is JSONArray -> {

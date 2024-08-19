@@ -1,9 +1,10 @@
 # expo-zebra-scanner
 
+Basic package to read barcodes on Zebra devices with Datawedge.
+
 - Supports SDK 51
 - Use Hermes Engine
-- Create custom expo dev build to use in development
-  https://docs.expo.dev/develop/development-builds/introduction/
+- Requires expo [dev build](https://docs.expo.dev/develop/development-builds/introduction/) to use in development
 
 ## Installation
 
@@ -42,6 +43,23 @@ const createBasicProfile = () => {
     ExpoZebraScanner.createIntentDatawedgeProfile({
         PROFILE_NAME: 'ExpoDatawedgeExample',
         PACKAGE_NAME: 'expo.modules.zebrascanner.example',
+    });
+};
+```
+
+You can optionally create a profile with custom [decoders](https://techdocs.zebra.com/datawedge/6-3/guide/api/setconfig/#scannerinputparameters) with PARAM_LIST:
+
+```js
+const createBasicProfile = () => {
+    ExpoZebraScanner.createIntentDatawedgeProfile({
+        PROFILE_NAME: 'ExpoDatawedgeExample',
+        PACKAGE_NAME: 'expo.modules.zebrascanner.example',
+	PARAM_LIST: {
+            decoder_i2of5: 'true',
+	    decoder_ean8: 'true',
+	    decoder_qrcode: 'true',
+	    decoder_code128: 'true',
+        }
     });
 };
 ```
@@ -148,3 +166,5 @@ export default function MyComponent() {
   );
 }
 ```
+
+Also take a look at the [example](./example/)

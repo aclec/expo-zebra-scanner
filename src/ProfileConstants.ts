@@ -1,6 +1,14 @@
+// Idea for a PR:
+// Add types to SCANNER_PARAMS according to
+// https://techdocs.zebra.com/datawedge/6-3/guide/api/setconfig/#scannerinputparameters
+export type ScannerParams = {
+    [key: string]: string;
+  };
+
 export type CreateProfileData = {
     PROFILE_NAME: string;
     PACKAGE_NAME: string;
+    PARAM_LIST?: ScannerParams;
 };
 
 export const DEFAULT_BARCODES_CONFIG = {
@@ -12,7 +20,6 @@ export const DEFAULT_BARCODES_CONFIG = {
         PARAM_LIST: {
             scanner_selection: 'auto',
             decoder_code11: 'true',
-            decoder_i2of5: 'true',
         },
     },
     APP_LIST: [
