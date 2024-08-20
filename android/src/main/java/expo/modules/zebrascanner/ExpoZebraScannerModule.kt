@@ -15,6 +15,7 @@ import androidx.core.os.bundleOf
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import android.util.Log
 
 const val ACTION_BARCODE_SCANNED = "com.symbol.datawedge.ACTION_BARCODE_SCANNED"
 const val scanEvent = "onBarcodeScanned"

@@ -140,6 +140,8 @@ const CONFIGURE_KEYSTROKE = {
 
 ## Usage
 
+Basic usage consists on adding a listener to the module as shown below:
+
 ```js
 import React, { useEffect } from 'react';
 import * as ExpoZebraScanner from 'expo-zebra-scanner';
@@ -169,4 +171,4 @@ export default function MyComponent() {
 
 Also take a look at the [example](./example/) for a slightly more complete use case with profile creation and keystroke output setup.
 
-<img src="example/ExampleApp.png" alt="Example app" width="400"/>
+<img src="example/screenshots/Example1.png" alt="Example app" width="350"/>

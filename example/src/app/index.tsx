@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useRef, useState } from 'react';
 import * as ExpoZebraScanner from 'expo-zebra-scanner';
 import {
   View,
@@ -7,21 +7,19 @@ import {
   StyleSheet,
   Pressable,
   TextInput,
-  Switch,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-
-const PROFILE_NAME = 'DatawedgeExpoExample';
+import { SettingsContext } from '../library/context/SettingsContext';
 
 /**
  * Example app to create a profile, configure intent and keystroke output
  * and switch between them
  */
-export default function App() {
+export default function HomeScreen() {
   const [barcodes, setBarcodes] = useState<string[]>([]);
   const [inputData, setInputData] = useState<string>('');
-  const [isIntentOutput, setIsIntentOutput] = useState(true);
   const ref = useRef<TextInput>(null);
+  const { isIntentEnabled } = useContext(SettingsContext);
 
   useFocusEffect(
     useCallback(() => {
@@ -32,6 +30,7 @@ export default function App() {
       });
 
       ExpoZebraScanner.startScan();
+      ref?.current?.focus();
 
       return () => {
         ExpoZebraScanner.stopScan();
@@ -40,68 +39,35 @@ export default function App() {
     }, []),
   );
 
-  // Create the profile when app loads
-  // In expo router you want to put this on your top _layout.tsx
-  useEffect(() => {
-    createProfile();
-  }, []);
-
-  // We create the profile with custom decoders and setup keystroke
-  // for example purposes
-  const createProfile = () => {
-    ExpoZebraScanner.createIntentDatawedgeProfile({
-      PROFILE_NAME,
-      PACKAGE_NAME: 'com.anonymous.testnativeexpo',
-      PARAM_LIST: {
-        decoder_i2of5: 'true',
-      },
-    });
-    ExpoZebraScanner.sendActionCommand(
-      'com.symbol.datawedge.api.SET_CONFIG',
-      CONFIGURE_KEYSTROKE_ENTER,
-    );
-  };
-
-  // Example of how to switch between Intent and Keystroke outputs
-  const onOutputTypeChange = (isIntent: boolean) => {
-    setIsIntentOutput(isIntent);
-    ExpoZebraScanner.sendActionCommand(
-      'com.symbol.datawedge.api.SET_CONFIG',
-      CONFIGURE_INTENT(isIntent),
-    );
-    ExpoZebraScanner.sendActionCommand(
-      'com.symbol.datawedge.api.SET_CONFIG',
-      CONFIGURE_KEYSTROKE(!isIntent),
-    );
-  };
-
   return (
     <FlatList
+      focusable={false}
       data={barcodes}
       keyExtractor={(_, index) => index.toString()}
       ListHeaderComponent={
         <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>Expo zebra scanner</Text>
-          <TextInput
-            ref={ref}
-            style={styles.input}
-            placeholder="Add barcode"
-            focusable={true}
-            autoFocus={!isIntentOutput}
-            value={inputData}
-            onChangeText={setInputData}
-            onSubmitEditing={() => {
-              setBarcodes(_barcodes => [..._barcodes, inputData]);
-              setInputData('');
-              ref?.current?.focus();
-            }}
-          />
-          <View style={styles.outputTypeContainer}>
-            <Text style={styles.label}>Keystroke output</Text>
-            <Switch value={isIntentOutput} onValueChange={onOutputTypeChange} />
-            <Text style={styles.label}>Intent output</Text>
+          {!isIntentEnabled && (
+            <TextInput
+              autoFocus
+              ref={ref}
+              style={styles.input}
+              placeholder="Add barcode"
+              focusable={true}
+              value={inputData}
+              onChangeText={setInputData}
+              onSubmitEditing={() => {
+                setBarcodes(_barcodes => [..._barcodes, inputData]);
+                setInputData('');
+              }}
+              blurOnSubmit={false}
+            />
+          )}
+          <View style={styles.flex}>
+            <Text>Barcodes ({barcodes.length})</Text>
+            {isIntentEnabled && (
+              <Text style={styles.helpLabel}>Intent enabled</Text>
+            )}
           </View>
-          <Text>Barcodes ({barcodes.length})</Text>
         </View>
       }
       ListEmptyComponent={
@@ -145,6 +111,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingVertical: 10,
     paddingHorizontal: 15,
+    marginBottom: 15,
     borderWidth: 1,
     borderRadius: 6,
     borderColor: '#D4D4D4',
@@ -196,46 +163,11 @@ const styles = StyleSheet.create({
   deleteBtnLabel: {
     color: '#FEFEFE',
   },
-});
-
-const CONFIGURE_INTENT = (enableIntent: boolean) => ({
-  PROFILE_NAME,
-  PROFILE_ENABLED: 'true',
-  CONFIG_MODE: 'UPDATE',
-  PLUGIN_CONFIG: {
-    PLUGIN_NAME: 'INTENT',
-    RESET_CONFIG: 'true',
-    PARAM_LIST: {
-      intent_output_enabled: enableIntent ? 'true' : 'false',
-      intent_action: 'com.symbol.datawedge.ACTION_BARCODE_SCANNED',
-      intent_delivery: '2',
-    },
+  flex: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  helpLabel: {
+    color: '#FF4233',
   },
 });
-
-const CONFIGURE_KEYSTROKE = (enableKeystroke: boolean) => ({
-  PROFILE_NAME,
-  PROFILE_ENABLED: 'true',
-  CONFIG_MODE: 'UPDATE',
-  PLUGIN_CONFIG: {
-    PLUGIN_NAME: 'KEYSTROKE',
-    RESET_CONFIG: 'true',
-    PARAM_LIST: {
-      keystroke_output_enabled: enableKeystroke ? 'true' : 'false',
-    },
-  },
-});
-
-const CONFIGURE_KEYSTROKE_ENTER = {
-  PROFILE_NAME,
-  PROFILE_ENABLED: 'true',
-  CONFIG_MODE: 'UPDATE',
-  PLUGIN_CONFIG: {
-    PLUGIN_NAME: 'BDF',
-    OUTPUT_PLUGIN_NAME: 'KEYSTROKE',
-    RESET_CONFIG: 'true',
-    PARAM_LIST: {
-      bdf_send_enter: 'true', // Send ENTER for keystroke output
-    },
-  },
-};
