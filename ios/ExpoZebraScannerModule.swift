@@ -21,5 +21,9 @@ public class ExpoZebraScannerModule: Module {
     Function("stopScan") {
       return "ExpoZebraScanner not available on IOS."
     }
+    Function("sendBroadcast") {
+      return "ExpoZebraScanner not available on IOS."
+    }
+
   }
 }
