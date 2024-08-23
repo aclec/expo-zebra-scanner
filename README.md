@@ -157,7 +157,7 @@ export default function MyComponent() {
 
     return () => {
       ExpoZebraScanner.stopScan();
-      listener.remove();
+      listener?.remove();
     };
   }, []);
 
