@@ -41,7 +41,7 @@ class BarcodeReceiver(val ev: (name: String, body: Bundle?) -> Unit) : Broadcast
 
 class ExpoZebraScannerModule : Module() {
 
-  private lateinit var barcodeReceiver: BroadcastReceiver
+  private var barcodeReceiver: BroadcastReceiver? = null
 
   override fun definition() = ModuleDefinition {
 
@@ -67,8 +67,9 @@ class ExpoZebraScannerModule : Module() {
 
     Function("stopScan") {
       val activity = appContext.activityProvider?.currentActivity
-      if(activity != null) {
+      if (activity != null && barcodeReceiver != null) {
         activity.unregisterReceiver(barcodeReceiver)
+        barcodeReceiver = null
       }
     }
 
