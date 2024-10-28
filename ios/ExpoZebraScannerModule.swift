@@ -27,7 +27,7 @@ public class ExpoZebraScannerModule: Module {
     }
 
     Function("sendActionCommand") { (extraName: String, extraData: Any) -> String in
-      return "ExpoZebraScanner not available on IOS."
+      return "Action command received with extraName: \(extraName) and extraData: \(extraData)"
     }
 
   }
