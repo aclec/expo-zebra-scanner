@@ -21,7 +21,12 @@ public class ExpoZebraScannerModule: Module {
     Function("stopScan") {
       return "ExpoZebraScanner not available on IOS."
     }
-    Function("sendBroadcast") {
+
+    Function("sendBroadcast") { (bundle: [String: Any]) -> String in
+      return "ExpoZebraScanner not available on IOS."
+    }
+
+    Function("sendActionCommand") { (extraName: String, extraData: Any) -> String in
       return "ExpoZebraScanner not available on IOS."
     }
 
