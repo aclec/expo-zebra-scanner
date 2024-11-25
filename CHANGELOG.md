@@ -1,4 +1,4 @@
-# @react-pdf/renderer
+# expo-zebra-scanner
 
 ## 5.0.0
 
