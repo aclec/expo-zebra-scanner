@@ -58,10 +58,9 @@ class ExpoZebraScannerModule : Module() {
         filter.addAction(ACTION_BARCODE_SCANNED)
 
         barcodeReceiver = BarcodeReceiver(::sendEvent)
-        activity.registerReceiver(
-          barcodeReceiver, filter, ContextCompat.RECEIVER_EXPORTED
+        ContextCompat.registerReceiver(
+            activity, barcodeReceiver, filter, ContextCompat.RECEIVER_EXPORTED
         )
-
       }
     }
 
