@@ -1,6 +1,6 @@
 {
   "name": "expo-zebra-scanner",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Module to use Zebra Scanner with React Native Expo",
   "main": "build/index.js",
   "types": "build/index.d.ts",
