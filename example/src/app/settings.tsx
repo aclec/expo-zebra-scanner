@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SettingsContext } from '../library/context/SettingsContext';
+import * as ExpoZebraScanner from 'expo-zebra-scanner';
 
 /*
   The settings shown here are for example purposes, currently there's no way
@@ -32,6 +33,14 @@ export default function SettingsScreen() {
   const [intentPrefixValue, setIntentPrefixValue] = useState(intentPrefix);
   const [keystrokePrefixValue, setKeystrokePrefixValue] =
     useState(keystrokePrefix);
+  const [dwVersion, setDwVersion] = useState([-1, -1, -1]);
+
+  useEffect(() => {
+    (async () => {
+      const version = await ExpoZebraScanner.getDataWedgeVersion();
+      setDwVersion(version);
+    })();
+  }, []);
 
   return (
     <ScrollView>
@@ -101,6 +110,14 @@ export default function SettingsScreen() {
             updateSettings('keystrokePrefix', e.nativeEvent.text)
           }
         />
+      </View>
+
+      <View style={styles.configContainerSection}>
+        <Text style={styles.configSectionLabel}>DataWedge Version</Text>
+      </View>
+      <View style={styles.configContainer}>
+        <Text style={styles.configLabel}>Version:</Text>
+        <Text style={styles.configLabel}>{dwVersion.join(', ')}</Text>
       </View>
     </ScrollView>
   );
