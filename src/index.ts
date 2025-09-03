@@ -39,8 +39,8 @@ export function stopCustomScan() {
   return ExpoZebraScannerModule.stopCustomScan();
 }
 
-export function addCustomListener(
-  listener: (event: any) => void,
+export function addCustomListener<T = any>(
+  listener: (event: T) => void,
 ): EventSubscription {
   return ExpoZebraScannerModule.addListener('onCustomScan', listener);
 }
