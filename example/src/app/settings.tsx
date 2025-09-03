@@ -27,6 +27,7 @@ export default function SettingsScreen() {
     isKeystrokeEnterEnabled,
     intentPrefix,
     keystrokePrefix,
+    isCustomEventEnabled,
     updateSettings,
   } = useContext(SettingsContext);
 
@@ -52,6 +53,7 @@ export default function SettingsScreen() {
         <Switch
           value={isIntentEnabled}
           onValueChange={value => updateSettings('isIntentEnabled', value)}
+          disabled={isCustomEventEnabled}
         />
       </View>
       <View style={[styles.configContainer, { paddingVertical: 10 }]}>
@@ -70,6 +72,7 @@ export default function SettingsScreen() {
           onSubmitEditing={e =>
             updateSettings('intentPrefix', e.nativeEvent.text)
           }
+          editable={!isCustomEventEnabled}
         />
       </View>
       <View style={styles.configContainerSection}>
@@ -80,6 +83,7 @@ export default function SettingsScreen() {
         <Switch
           value={!isIntentEnabled}
           onValueChange={value => updateSettings('isIntentEnabled', !value)}
+          disabled={isCustomEventEnabled}
         />
       </View>
       <View style={styles.configContainer}>
@@ -89,6 +93,7 @@ export default function SettingsScreen() {
           onValueChange={value =>
             updateSettings('isKeystrokeEnterEnabled', value)
           }
+          disabled={isCustomEventEnabled}
         />
       </View>
       <View style={[styles.configContainer, { paddingVertical: 10 }]}>
@@ -109,6 +114,18 @@ export default function SettingsScreen() {
           onSubmitEditing={e =>
             updateSettings('keystrokePrefix', e.nativeEvent.text)
           }
+          editable={!isCustomEventEnabled}
+        />
+      </View>
+
+      <View style={styles.configContainerSection}>
+        <Text style={styles.configSectionLabel}>Custom event</Text>
+      </View>
+      <View style={styles.configContainer}>
+        <Text style={styles.configLabel}>Enable custom event</Text>
+        <Switch
+          value={isCustomEventEnabled}
+          onValueChange={value => updateSettings('isCustomEventEnabled', value)}
         />
       </View>
 

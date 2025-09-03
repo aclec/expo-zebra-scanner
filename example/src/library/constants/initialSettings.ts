@@ -3,6 +3,9 @@ export type SettingsType = {
   intentPrefix: string;
   isKeystrokeEnterEnabled: boolean;
   keystrokePrefix: string;
+  // New settings for custom event mode
+  isCustomEventEnabled: boolean;
+  customEventAction: string;
 };
 
 export const INITIAL_SETTINGS: SettingsType = {
@@ -10,4 +13,6 @@ export const INITIAL_SETTINGS: SettingsType = {
   intentPrefix: '',
   isKeystrokeEnterEnabled: false,
   keystrokePrefix: '',
+  isCustomEventEnabled: false,
+  customEventAction: 'com.symbol.datawedge.ACTION_BARCODE_SCANNED',
 };
