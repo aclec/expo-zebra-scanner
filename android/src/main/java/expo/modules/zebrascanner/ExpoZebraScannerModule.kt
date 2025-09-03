@@ -16,6 +16,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import android.util.Log
+import expo.modules.kotlin.Promise
 
 const val ACTION_BARCODE_SCANNED = "com.symbol.datawedge.ACTION_BARCODE_SCANNED"
 const val scanEvent = "onBarcodeScanned"
@@ -114,6 +115,78 @@ class ExpoZebraScannerModule : Module() {
         activity.unregisterReceiver(customReceiver)
         customReceiver = null
       }
+    }
+
+    AsyncFunction("getDataWedgeVersion") { promise: Promise ->
+      val ctx = appContext.reactContext
+      if (ctx == null) {
+        promise.resolve(intArrayOf(0, 0, 0))
+        return@AsyncFunction
+      }
+
+      val resultAction = "com.symbol.datawedge.api.RESULT_ACTION" // can be custom if you want
+      val resultCategory = Intent.CATEGORY_DEFAULT
+      val timeoutMs = 3000L
+
+      var completed = false
+      val handler = android.os.Handler(android.os.Looper.getMainLooper())
+      var timeoutRunnable: Runnable? = null
+
+      // One-shot receiver to capture version info
+      val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+          if (completed) return
+          try {
+            if (intent.action == resultAction && intent.hasExtra("com.symbol.datawedge.api.RESULT_GET_VERSION_INFO")) {
+              val bundle = intent.getBundleExtra("com.symbol.datawedge.api.RESULT_GET_VERSION_INFO")
+              val dw = bundle?.getString("DATAWEDGE") ?: "0.0.0"
+              completed = true
+              timeoutRunnable?.let { handler.removeCallbacks(it) }
+              promise.resolve(parseVersion(dw))
+            } else if (intent.action == resultAction && intent.hasExtra("com.symbol.datawedge.api.RESULT_INFO")) {
+              completed = true
+              timeoutRunnable?.let { handler.removeCallbacks(it) }
+              promise.resolve(intArrayOf(0, 0, 0))
+            }
+          } catch (_: Throwable) {
+            if (!completed) {
+              completed = true
+              timeoutRunnable?.let { handler.removeCallbacks(it) }
+              promise.resolve(intArrayOf(0, 0, 0))
+            }
+          } finally {
+            try { ctx.unregisterReceiver(this) } catch (_: Throwable) {}
+          }
+        }
+      }
+
+      // Register receiver
+      val filter = IntentFilter().apply {
+        addAction(resultAction)
+        addCategory(resultCategory)
+      }
+      ContextCompat.registerReceiver(ctx, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
+
+      // Timeout fallback
+      timeoutRunnable = Runnable {
+        if (!completed) {
+          completed = true
+          try { ctx.unregisterReceiver(receiver) } catch (_: Throwable) {}
+          promise.resolve(intArrayOf(0, 0, 0))
+        }
+      }
+      handler.postDelayed(timeoutRunnable!!, timeoutMs)
+
+      // Send request
+      val intent = Intent().apply {
+        action = "com.symbol.datawedge.api.ACTION"
+        putExtra("com.symbol.datawedge.api.GET_VERSION_INFO", "true")
+        putExtra("com.symbol.datawedge.api.SEND_RESULT", "true")
+        putExtra("com.symbol.datawedge.api.RESULT_ACTION", resultAction)
+        putExtra("com.symbol.datawedge.api.RESULT_CATEGORY", resultCategory)
+        putExtra("com.symbol.datawedge.api.RESULT_PACKAGE", ctx.packageName)
+      }
+      ctx.sendBroadcast(intent)
     }
 
   }

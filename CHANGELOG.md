@@ -3,6 +3,7 @@
 ## 6.0.0
 
 - Add Custom Event support on Android: startCustomScan(action), stopCustomScan(), addCustomListener(listener)
+- New API: getDataWedgeVersion() returning [major, minor, patch]
 - Keep existing barcode receiver and default event `onBarcodeScanned` unchanged
 - Update to Expo SDK 53
 

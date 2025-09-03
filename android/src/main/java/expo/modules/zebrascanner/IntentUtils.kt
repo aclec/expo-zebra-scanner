@@ -7,9 +7,7 @@ import org.json.JSONException
 import org.json.JSONObject
 
 
-// Ported from https://github.com/darryncampbell/react-native-datawedge-intents
-// Credits to @darryncampbell
-// Helper to convert JSONObject into Bundle (used by sendBroadcast)
+// Ported helper to convert JSONObject into Bundle (used by sendBroadcast)
 internal fun jsonToBundle(obj: JSONObject?): Bundle? {
   if (obj == null) return null
   val returnBundle = Bundle()
@@ -88,4 +86,15 @@ internal fun intentToBundle(intent: Intent): Bundle {
   }
   b.putBundle("extras", extrasBundle)
   return b
+}
+
+
+internal fun parseVersion(v: String?): IntArray {
+  if (v == null) return intArrayOf(0,0,0)
+  val parts = v.trim().split('.', '-', ' ').filter { it.isNotEmpty() }
+  val nums = IntArray(3)
+  for (i in 0..2) {
+    nums[i] = parts.getOrNull(i)?.toIntOrNull() ?: 0
+  }
+  return nums
 }

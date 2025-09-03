@@ -102,3 +102,13 @@ export function createIntentDatawedgeProfile({
 }
 
 export { BroadcastExtras, BroadcastEvent };
+
+export async function getDataWedgeVersion(): Promise<[number, number, number]> {
+  try {
+    const arr = await (ExpoZebraScannerModule as any).getDataWedgeVersion();
+    if (Array.isArray(arr) && arr.length >= 3) {
+      return [Number(arr[0]) || 0, Number(arr[1]) || 0, Number(arr[2]) || 0];
+    }
+  } catch {}
+  return [0, 0, 0];
+}

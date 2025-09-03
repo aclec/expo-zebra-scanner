@@ -34,5 +34,9 @@ public class ExpoZebraScannerModule: Module {
       return "ExpoZebraScanner not available on IOS."
     }
 
+    AsyncFunction("getDataWedgeVersion") { () -> [Int] in
+      return [0, 0, 0]
+    }
+
   }
 }
