@@ -11,6 +11,7 @@ import {
 
 // Idea for a PR: Add documentation comments
 
+// --- BarcodeScanner ---
 export function startScan() {
   return ExpoZebraScannerModule.startScan();
 }
@@ -29,6 +30,22 @@ export function removeListener(listener: any): void {
   listener?.remove();
 }
 
+// --- Custom Scan ---
+export function startCustomScan(action: string) {
+  return ExpoZebraScannerModule.startCustomScan(action);
+}
+
+export function stopCustomScan() {
+  return ExpoZebraScannerModule.stopCustomScan();
+}
+
+export function addCustomListener(
+  listener: (event: any) => void,
+): EventSubscription {
+  return ExpoZebraScannerModule.addListener('onCustomScan', listener);
+}
+
+// --- Broadcast ---
 export function sendBroadcast(bundle: BroadcastEvent) {
   ExpoZebraScannerModule.sendBroadcast(bundle);
 }
