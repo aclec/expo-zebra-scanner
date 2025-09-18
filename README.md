@@ -2,7 +2,7 @@
 
 Basic package to read barcodes on Zebra devices with Datawedge.
 
-- Supports SDK 53
+- Supports SDK 54
 - Use Hermes Engine
 - Use New Architecture
 - Requires expo [dev build](https://docs.expo.dev/develop/development-builds/introduction/) to use in development
