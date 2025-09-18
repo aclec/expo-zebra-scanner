@@ -11,6 +11,7 @@ import {
 
 // Idea for a PR: Add documentation comments
 
+// --- BarcodeScanner ---
 export function startScan() {
   return ExpoZebraScannerModule.startScan();
 }
@@ -29,6 +30,22 @@ export function removeListener(listener: any): void {
   listener?.remove();
 }
 
+// --- Custom Scan ---
+export function startCustomScan(action: string) {
+  return ExpoZebraScannerModule.startCustomScan(action);
+}
+
+export function stopCustomScan() {
+  return ExpoZebraScannerModule.stopCustomScan();
+}
+
+export function addCustomListener<T = any>(
+  listener: (event: T) => void,
+): EventSubscription {
+  return ExpoZebraScannerModule.addListener('onCustomScan', listener);
+}
+
+// --- Broadcast ---
 export function sendBroadcast(bundle: BroadcastEvent) {
   ExpoZebraScannerModule.sendBroadcast(bundle);
 }
@@ -85,3 +102,13 @@ export function createIntentDatawedgeProfile({
 }
 
 export { BroadcastExtras, BroadcastEvent };
+
+export async function getDataWedgeVersion(): Promise<[number, number, number]> {
+  try {
+    const arr = await (ExpoZebraScannerModule as any).getDataWedgeVersion();
+    if (Array.isArray(arr) && arr.length >= 3) {
+      return [Number(arr[0]) || 0, Number(arr[1]) || 0, Number(arr[2]) || 0];
+    }
+  } catch {}
+  return [0, 0, 0];
+}

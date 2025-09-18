@@ -16,37 +16,21 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import android.util.Log
+import expo.modules.kotlin.Promise
 
 const val ACTION_BARCODE_SCANNED = "com.symbol.datawedge.ACTION_BARCODE_SCANNED"
 const val scanEvent = "onBarcodeScanned"
-
-class BarcodeReceiver(val ev: (name: String, body: Bundle?) -> Unit) : BroadcastReceiver() {
-  override fun onReceive(context: Context, intent: Intent) {
-
-    if (intent.action.equals(ACTION_BARCODE_SCANNED)) {
-      val scanData = intent.getStringExtra("com.symbol.datawedge.data_string")
-      val scanLabelType = intent.getStringExtra("com.symbol.datawedge.label_type")
-
-      // Handle barcode data
-      val eventData = bundleOf(
-        "scanData" to scanData,
-        "scanLabelType" to scanLabelType
-      )
-      this.ev(scanEvent, eventData)
-    }
-
-  }
-
-}
+const val customScanEvent = "onCustomScan"
 
 class ExpoZebraScannerModule : Module() {
 
   private var barcodeReceiver: BroadcastReceiver? = null
+  private var customReceiver: BroadcastReceiver? = null
 
   override fun definition() = ModuleDefinition {
 
     Name("ExpoZebraScanner")
-    Events(scanEvent)
+    Events(scanEvent, customScanEvent)
 
     Function("startScan") {
       val activity = appContext.activityProvider?.currentActivity
@@ -57,7 +41,7 @@ class ExpoZebraScannerModule : Module() {
         filter.addCategory(Intent.CATEGORY_DEFAULT)
         filter.addAction(ACTION_BARCODE_SCANNED)
 
-        barcodeReceiver = BarcodeReceiver(::sendEvent)
+        barcodeReceiver = BarcodeReceiver(scanEvent, ::sendEvent)
         ContextCompat.registerReceiver(
             activity, barcodeReceiver, filter, ContextCompat.RECEIVER_EXPORTED
         )
@@ -93,7 +77,7 @@ class ExpoZebraScannerModule : Module() {
           is Double -> intent.putExtra(key, value)
           else -> {
             if (valueStr.startsWith("{")) {
-              val bundle = toBundle(JSONObject(valueStr))
+              val bundle = jsonToBundle(JSONObject(valueStr))
               intent.putExtra(key, bundle)
             } else {
               intent.putExtra(key, valueStr)
@@ -105,52 +89,106 @@ class ExpoZebraScannerModule : Module() {
       appContext?.reactContext?.sendBroadcast(intent)
     }
 
-  }
+    Function("startCustomScan") { action: String ->
+      val activity = appContext.activityProvider?.currentActivity
+      if (activity != null) {
+        // If previously registered, unregister first to avoid duplicates
+        if (customReceiver != null) {
+          activity.unregisterReceiver(customReceiver)
+          customReceiver = null
+        }
 
-  // Ported from https://github.com/darryncampbell/react-native-datawedge-intents
-  // Credits to @darryncampbell
-  private fun toBundle(obj: JSONObject?): Bundle? {
-    if (obj == null) {
-      return null
+        val filter = IntentFilter()
+        filter.addCategory(Intent.CATEGORY_DEFAULT)
+        filter.addAction(action)
+
+        customReceiver = CustomEventReceiver(customScanEvent, ::sendEvent)
+        ContextCompat.registerReceiver(
+          activity, customReceiver, filter, ContextCompat.RECEIVER_EXPORTED
+        )
+      }
     }
-    val returnBundle = Bundle()
-    try {
-      val keys = obj.keys()
-      while (keys.hasNext()) {
-        val key = keys.next()
-        when (val value = obj.get(key)) {
-          is String -> returnBundle.putString(key, value)
-          is Boolean -> returnBundle.putString(key, value.toString())
-          is Int -> returnBundle.putString(key, value.toString())
-          is Long -> returnBundle.putLong(key, value)
-          is Double -> returnBundle.putDouble(key, value)
-          is JSONArray -> {
-            if (value.length() > 0) {
-              when (value.get(0)) {
-                is String -> {
-                  val stringArray = Array(value.length()) { i -> value.getString(i) }
-                  returnBundle.putStringArray(key, stringArray)
-                }
-                is Int -> {
-                  val intArray = IntArray(value.length()) { i -> value.getInt(i) }
-                  returnBundle.putIntArray(key, intArray)
-                }
-                is JSONObject -> {
-                  val bundleArray = Array(value.length()) { i -> toBundle(value.getJSONObject(i)) }
-                  returnBundle.putParcelableArray(key, bundleArray)
-                }
-                else -> throw IllegalArgumentException("Unsupported JSONArray type for key: $key")
-              }
+
+    Function("stopCustomScan") {
+      val activity = appContext.activityProvider?.currentActivity
+      if (activity != null && customReceiver != null) {
+        activity.unregisterReceiver(customReceiver)
+        customReceiver = null
+      }
+    }
+
+    AsyncFunction("getDataWedgeVersion") { promise: Promise ->
+      val ctx = appContext.reactContext
+      if (ctx == null) {
+        promise.resolve(intArrayOf(0, 0, 0))
+        return@AsyncFunction
+      }
+
+      val resultAction = "com.symbol.datawedge.api.RESULT_ACTION" // can be custom if you want
+      val resultCategory = Intent.CATEGORY_DEFAULT
+      val timeoutMs = 3000L
+
+      var completed = false
+      val handler = android.os.Handler(android.os.Looper.getMainLooper())
+      var timeoutRunnable: Runnable? = null
+
+      // One-shot receiver to capture version info
+      val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+          if (completed) return
+          try {
+            if (intent.action == resultAction && intent.hasExtra("com.symbol.datawedge.api.RESULT_GET_VERSION_INFO")) {
+              val bundle = intent.getBundleExtra("com.symbol.datawedge.api.RESULT_GET_VERSION_INFO")
+              val dw = bundle?.getString("DATAWEDGE") ?: "0.0.0"
+              completed = true
+              timeoutRunnable?.let { handler.removeCallbacks(it) }
+              promise.resolve(parseVersion(dw))
+            } else if (intent.action == resultAction && intent.hasExtra("com.symbol.datawedge.api.RESULT_INFO")) {
+              completed = true
+              timeoutRunnable?.let { handler.removeCallbacks(it) }
+              promise.resolve(intArrayOf(0, 0, 0))
             }
+          } catch (_: Throwable) {
+            if (!completed) {
+              completed = true
+              timeoutRunnable?.let { handler.removeCallbacks(it) }
+              promise.resolve(intArrayOf(0, 0, 0))
+            }
+          } finally {
+            try { ctx.unregisterReceiver(this) } catch (_: Throwable) {}
           }
-          is JSONObject -> returnBundle.putBundle(key, toBundle(value))
-          else -> throw IllegalArgumentException("Unsupported type for key: $key")
         }
       }
-    } catch (e: JSONException) {
-       e.printStackTrace()
+
+      // Register receiver
+      val filter = IntentFilter().apply {
+        addAction(resultAction)
+        addCategory(resultCategory)
+      }
+      ContextCompat.registerReceiver(ctx, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
+
+      // Timeout fallback
+      timeoutRunnable = Runnable {
+        if (!completed) {
+          completed = true
+          try { ctx.unregisterReceiver(receiver) } catch (_: Throwable) {}
+          promise.resolve(intArrayOf(0, 0, 0))
+        }
+      }
+      handler.postDelayed(timeoutRunnable!!, timeoutMs)
+
+      // Send request
+      val intent = Intent().apply {
+        action = "com.symbol.datawedge.api.ACTION"
+        putExtra("com.symbol.datawedge.api.GET_VERSION_INFO", "true")
+        putExtra("com.symbol.datawedge.api.SEND_RESULT", "true")
+        putExtra("com.symbol.datawedge.api.RESULT_ACTION", resultAction)
+        putExtra("com.symbol.datawedge.api.RESULT_CATEGORY", resultCategory)
+        putExtra("com.symbol.datawedge.api.RESULT_PACKAGE", ctx.packageName)
+      }
+      ctx.sendBroadcast(intent)
     }
-    return returnBundle
+
   }
 
 }

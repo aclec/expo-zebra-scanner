@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SettingsContext } from '../library/context/SettingsContext';
+import * as ExpoZebraScanner from 'expo-zebra-scanner';
 
 /*
   The settings shown here are for example purposes, currently there's no way
@@ -26,12 +27,21 @@ export default function SettingsScreen() {
     isKeystrokeEnterEnabled,
     intentPrefix,
     keystrokePrefix,
+    isCustomEventEnabled,
     updateSettings,
   } = useContext(SettingsContext);
 
   const [intentPrefixValue, setIntentPrefixValue] = useState(intentPrefix);
   const [keystrokePrefixValue, setKeystrokePrefixValue] =
     useState(keystrokePrefix);
+  const [dwVersion, setDwVersion] = useState([-1, -1, -1]);
+
+  useEffect(() => {
+    (async () => {
+      const version = await ExpoZebraScanner.getDataWedgeVersion();
+      setDwVersion(version);
+    })();
+  }, []);
 
   return (
     <ScrollView>
@@ -43,6 +53,7 @@ export default function SettingsScreen() {
         <Switch
           value={isIntentEnabled}
           onValueChange={value => updateSettings('isIntentEnabled', value)}
+          disabled={isCustomEventEnabled}
         />
       </View>
       <View style={[styles.configContainer, { paddingVertical: 10 }]}>
@@ -61,6 +72,7 @@ export default function SettingsScreen() {
           onSubmitEditing={e =>
             updateSettings('intentPrefix', e.nativeEvent.text)
           }
+          editable={!isCustomEventEnabled}
         />
       </View>
       <View style={styles.configContainerSection}>
@@ -71,6 +83,7 @@ export default function SettingsScreen() {
         <Switch
           value={!isIntentEnabled}
           onValueChange={value => updateSettings('isIntentEnabled', !value)}
+          disabled={isCustomEventEnabled}
         />
       </View>
       <View style={styles.configContainer}>
@@ -80,6 +93,7 @@ export default function SettingsScreen() {
           onValueChange={value =>
             updateSettings('isKeystrokeEnterEnabled', value)
           }
+          disabled={isCustomEventEnabled}
         />
       </View>
       <View style={[styles.configContainer, { paddingVertical: 10 }]}>
@@ -100,7 +114,27 @@ export default function SettingsScreen() {
           onSubmitEditing={e =>
             updateSettings('keystrokePrefix', e.nativeEvent.text)
           }
+          editable={!isCustomEventEnabled}
         />
+      </View>
+
+      <View style={styles.configContainerSection}>
+        <Text style={styles.configSectionLabel}>Custom event</Text>
+      </View>
+      <View style={styles.configContainer}>
+        <Text style={styles.configLabel}>Enable custom event</Text>
+        <Switch
+          value={isCustomEventEnabled}
+          onValueChange={value => updateSettings('isCustomEventEnabled', value)}
+        />
+      </View>
+
+      <View style={styles.configContainerSection}>
+        <Text style={styles.configSectionLabel}>DataWedge Version</Text>
+      </View>
+      <View style={styles.configContainer}>
+        <Text style={styles.configLabel}>Version:</Text>
+        <Text style={styles.configLabel}>{dwVersion.join(', ')}</Text>
       </View>
     </ScrollView>
   );

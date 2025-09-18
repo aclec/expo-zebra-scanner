@@ -19,24 +19,38 @@ export default function HomeScreen() {
   const [barcodes, setBarcodes] = useState<string[]>([]);
   const [inputData, setInputData] = useState<string>('');
   const ref = useRef<TextInput>(null);
-  const { isIntentEnabled } = useContext(SettingsContext);
+  const { isIntentEnabled, isCustomEventEnabled } = useContext(SettingsContext);
 
   useFocusEffect(
     useCallback(() => {
-      const listener = ExpoZebraScanner.addListener(event => {
-        const { scanData } = event;
-        setBarcodes(_barcodes => [..._barcodes, scanData]);
-        // Do something else with barcode
-      });
+      let remove: { remove: () => void } | null = null;
 
-      ExpoZebraScanner.startScan();
+      if (isCustomEventEnabled) {
+        remove = ExpoZebraScanner.addCustomListener<any>(event => {
+          setBarcodes(_barcodes => [..._barcodes, JSON.stringify(event)]);
+        });
+        ExpoZebraScanner.startCustomScan(
+          'com.symbol.datawedge.ACTION_BARCODE_SCANNED',
+        );
+      } else {
+        remove = ExpoZebraScanner.addListener(event => {
+          const { scanData } = event;
+          setBarcodes(_barcodes => [..._barcodes, scanData]);
+        });
+        ExpoZebraScanner.startScan();
+      }
+
       ref?.current?.focus();
 
       return () => {
-        ExpoZebraScanner.stopScan();
-        listener.remove();
+        if (isCustomEventEnabled) {
+          ExpoZebraScanner.stopCustomScan();
+        } else {
+          ExpoZebraScanner.stopScan();
+        }
+        remove?.remove?.();
       };
-    }, []),
+    }, [isCustomEventEnabled]),
   );
 
   return (
@@ -59,7 +73,6 @@ export default function HomeScreen() {
                 setBarcodes(_barcodes => [..._barcodes, inputData]);
                 setInputData('');
               }}
-              blurOnSubmit={false}
             />
           )}
           <View style={styles.flex}>

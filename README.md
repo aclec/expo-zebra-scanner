@@ -2,13 +2,23 @@
 
 Basic package to read barcodes on Zebra devices with Datawedge.
 
-- Supports SDK 52
+- Supports SDK 53
 - Use Hermes Engine
+- Use New Architecture
 - Requires expo [dev build](https://docs.expo.dev/develop/development-builds/introduction/) to use in development
+
+## Table of Contents
+- [Installation](#installation)
+- [DataWedgeConfiguration](#datawedgeconfiguration)
+  - [Option 1: Manually configure DataWedge](#option-1-manually-configure-datawedge)
+  - [Option 2: Create a profile with code](#option-2-create-a-profile-with-code)
+- [Usage](#usage)
+- [Custom Events](#custom-events)
+- [DataWedge Version](#datawedge-version)
 
 ## Installation
 
-```js
+```sh
 yarn add expo-zebra-scanner
 npm install expo-zebra-scanner
 ```
@@ -25,7 +35,7 @@ https://techdocs.zebra.com/datawedge/latest/guide/settings/
 - Enable Barcode
 - Enable Intent (with configuration below & screenshots in dataWedge directory)
 
-```js
+```
 Intent => Broadcast Diffusion
 ACTION => com.symbol.datawedge.ACTION_BARCODE_SCANNED
 ```
@@ -172,3 +182,82 @@ export default function MyComponent() {
 Also take a look at the [example](./example/) for a slightly more complete use case with profile creation and keystroke output setup.
 
 <img src="example/screenshots/Example1.png" alt="Example app" width="350"/>
+
+---
+
+## Custom Events
+
+In addition to the default barcode receiver (onBarcodeScanned), you can listen to any broadcast Intent action and receive the full intent payload. This is useful when you want to subscribe to DataWedge or any other Android broadcast events.
+
+API:
+- startCustomScan(action: string)
+- stopCustomScan()
+- addCustomListener(listener: (event: any) => void)
+
+Notes:
+- The existing barcode flow remains unchanged. You can use both, but avoid registering two receivers for the same action.
+
+Example:
+
+```ts
+import * as ExpoZebraScanner from 'expo-zebra-scanner';
+import { useEffect } from 'react';
+
+export default function MyComponent() {
+  useEffect(() => {
+    // Choose any broadcast action you want to listen to
+    const ACTION = 'com.symbol.datawedge.api.RESULT_ACTION';
+
+        // Register listener BEFORE starting
+    const sub = ExpoZebraScanner.addCustomListener((event) => {
+      // event contains the full intent: { action, categories?, data?, type?, extras: { ... } }
+      console.log('Custom event received', event);
+    });
+
+    // Start listening for the given action
+    ExpoZebraScanner.startCustomScan(ACTION);
+
+    return () => {
+      // Always cleanup
+      ExpoZebraScanner.stopCustomScan();
+      sub.remove();
+    };
+  }, []);
+
+  return null;
+}
+```
+
+Event shape:
+
+```ts
+ type CustomEvent = {
+   action: string;
+   categories?: string[];
+   data?: string;   // data URI if any
+   type?: string;   // mime type if any
+   extras: Record<string, any>; // all extras are included; unknown types are stringified
+ }
+ ```
+
+---
+
+## DataWedge Version
+
+Helper to query the installed DataWedge version on the device.
+
+API:
+- getDataWedgeVersion(): Promise<[number, number, number]>
+
+Returns a tuple [major, minor, patch]. If the version cannot be determined, it returns [0, 0, 0].
+
+Example:
+
+```ts
+import * as ExpoZebraScanner from 'expo-zebra-scanner';
+
+async function checkDw() {
+  const [major, minor, patch] = await ExpoZebraScanner.getDataWedgeVersion();
+  console.log(`DataWedge version: ${major}.${minor}.${patch}`);
+}
+```

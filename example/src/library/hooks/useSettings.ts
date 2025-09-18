@@ -12,7 +12,7 @@ export const useSettings = () => {
   const [settings, setSettings] = useState<SettingsType>(INITIAL_SETTINGS);
 
   const updateSettings = useCallback(
-    (key: string, value: string | boolean) => {
+    (key: keyof SettingsType, value: string | boolean) => {
       const _settings: SettingsType = {
         ...settings,
         [key]: value,
@@ -24,11 +24,15 @@ export const useSettings = () => {
         isKeystrokeEnterEnabled,
         intentPrefix,
         keystrokePrefix,
+        isCustomEventEnabled,
       } = _settings;
+
+      const enableIntent = isIntentEnabled || isCustomEventEnabled;
+      const enableKeystroke = !isIntentEnabled && !isCustomEventEnabled;
 
       ExpoZebraScanner.sendActionCommand(
         'com.symbol.datawedge.api.SET_CONFIG',
-        CONFIGURE_INTENT(isIntentEnabled),
+        CONFIGURE_INTENT(enableIntent),
       );
       ExpoZebraScanner.sendActionCommand(
         'com.symbol.datawedge.api.SET_CONFIG',
@@ -36,7 +40,7 @@ export const useSettings = () => {
       );
       ExpoZebraScanner.sendActionCommand(
         'com.symbol.datawedge.api.SET_CONFIG',
-        CONFIGURE_KEYSTROKE(!isIntentEnabled),
+        CONFIGURE_KEYSTROKE(enableKeystroke),
       );
       ExpoZebraScanner.sendActionCommand(
         'com.symbol.datawedge.api.SET_CONFIG',
