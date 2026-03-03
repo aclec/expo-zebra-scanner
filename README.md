@@ -47,17 +47,28 @@ Behavior:
 -   Multiple hook instances are safe: subscriptions are deduplicated and ref-counted.
 -   To create a DataWedge profile, call `useZebraCreateProfile` separately before using this hook.
 
-Example:
 
 ```tsx
 import { useZebraScanner } from "expo-zebra-scanner";
+import { useState } from "react";
+import { Text, View } from "react-native";
 
-useZebraScanner({
-    enabled: true,
-    onBarcodeScanned: (event) => {
-        console.log(event.scanData, event.scanLabelType);
-    },
-});
+export function BarcodeListener() {
+    const [lastScan, setLastScan] = useState("");
+
+    useZebraScanner({
+        enabled: true,
+        onBarcodeScanned: (event) => {
+            setLastScan(`${event.scanLabelType}: ${event.scanData}`);
+        },
+    });
+
+    return (
+        <View>
+            <Text>Last scan: {lastScan || "none"}</Text>
+        </View>
+    );
+}
 ```
 
 ---
@@ -80,17 +91,28 @@ Behavior:
 -   Works with multiple parallel actions safely.
 -   Hook alias also available: `useCustomZebraScanner`.
 
-Example:
 
 ```tsx
 import { useZebraCustomScanner } from "expo-zebra-scanner";
+import { useState } from "react";
+import { Text, View } from "react-native";
 
-useZebraCustomScanner({
-    customAction: "com.symbol.datawedge.api.RESULT_ACTION",
-    onCustomScan: (event) => {
-        console.log(event.action, event.extras);
-    },
-});
+export function CustomActionListener() {
+    const [lastAction, setLastAction] = useState("");
+
+    useZebraCustomScanner({
+        customAction: "com.symbol.datawedge.api.RESULT_ACTION",
+        onCustomScan: (event) => {
+            setLastAction(event.action);
+        },
+    });
+
+    return (
+        <View>
+            <Text>Last action: {lastAction || "none"}</Text>
+        </View>
+    );
+}
 ```
 
 ---
@@ -124,19 +146,28 @@ Payload options (`createProfile({...})`):
 -   `PARAM_LIST` (optional): BARCODE plugin decoder/settings overrides.
 -   `INTENT_ACTION` (optional): override DataWedge intent action.
 
-Default usage (recommended):
 
-```ts
-const createProfile = useZebraCreateProfile();
+```tsx
+import { useEffect } from "react";
+import { Text } from "react-native";
+import { useZebraCreateProfile } from "expo-zebra-scanner";
 
-createProfile({
-    PROFILE_NAME: "ExpoDatawedgeExample",
-    PACKAGE_NAME: "expo.modules.zebrascanner.example",
-    PARAM_LIST: {
-        decoder_qrcode: "true",
-        decoder_code128: "true",
-    },
-});
+export function SetupDataWedgeProfile() {
+    const createProfile = useZebraCreateProfile();
+
+    useEffect(() => {
+        createProfile({
+            PROFILE_NAME: "ExpoDatawedgeExample",
+            PACKAGE_NAME: "expo.modules.zebrascanner.example",
+            PARAM_LIST: {
+                decoder_qrcode: "true",
+                decoder_code128: "true",
+            },
+        });
+    }, [createProfile]);
+
+    return <Text>Profile setup sent</Text>;
+}
 ```
 
 Important:
@@ -146,14 +177,25 @@ Important:
 -   Set `INTENT_ACTION` only if you intentionally listen to a custom action (for example `useZebraScanner({ customAction: "..." })`).
 -   If you listen with `useZebraScanner({ customAction })`, set the same action in profile creation via `INTENT_ACTION` (or DataWedge UI / manual command).
 
-Custom action example (optional):
 
-```ts
-createProfile({
-    PROFILE_NAME: "ExpoDatawedgeExample",
-    PACKAGE_NAME: "expo.modules.zebrascanner.example",
-    INTENT_ACTION: "com.mycompany.MY_SCAN_ACTION",
-});
+```tsx
+import { useEffect } from "react";
+import { Text } from "react-native";
+import { useZebraCreateProfile } from "expo-zebra-scanner";
+
+export function SetupCustomActionProfile() {
+    const createProfile = useZebraCreateProfile();
+
+    useEffect(() => {
+        createProfile({
+            PROFILE_NAME: "ExpoDatawedgeExample",
+            PACKAGE_NAME: "expo.modules.zebrascanner.example",
+            INTENT_ACTION: "com.mycompany.MY_SCAN_ACTION",
+        });
+    }, [createProfile]);
+
+    return <Text>Custom profile setup sent</Text>;
+}
 ```
 
 ---
@@ -173,13 +215,23 @@ Returned functions:
 -   `createProfile(profile)`
 -   `getDataWedgeVersion()`
 
-Example:
 
-```ts
-const zebra = useZebraCoreFunctions();
+```tsx
+import { useEffect } from "react";
+import { Text } from "react-native";
+import { useZebraCoreFunctions } from "expo-zebra-scanner";
 
-await zebra.getDataWedgeVersion();
-zebra.startScan();
+export function DataWedgeVersionCheck() {
+    const zebra = useZebraCoreFunctions();
+
+    useEffect(() => {
+        zebra.getDataWedgeVersion().then((version) => {
+            console.log("DataWedge version:", version);
+        });
+    }, [zebra]);
+
+    return <Text>Checking DataWedge version...</Text>;
+}
 ```
 
 ---
