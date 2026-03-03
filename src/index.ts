@@ -1,7 +1,8 @@
 import { EventSubscription } from 'expo-modules-core';
-import ExpoZebraScannerModule from './ExpoZebraScannerModule';
-import { BarcodeEvent } from './ExpoZebraScannerEvent';
+
 import { BroadcastEvent, BroadcastExtras } from './ExpoZebraBroadcastEvent';
+import { BarcodeEvent } from './ExpoZebraScannerEvent';
+import ExpoZebraScannerModule from './ExpoZebraScannerModule';
 import {
   CreateProfileData,
   DEFAULT_BARCODES_CONFIG,

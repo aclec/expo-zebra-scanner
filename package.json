@@ -31,20 +31,16 @@
   "license": "MIT",
   "homepage": "https://github.com/aclec/expo-zebra-scanner#readme",
   "devDependencies": {
-    "@types/react": "^18.0.25",
+    "@types/react": "^19.2.14",
     "@types/react-native": "^0.73.0",
-    "eslint": "^8.57.0",
-    "eslint-config-expo": "^8.0.1",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1",
-    "expo-module-scripts": "^5.0.7",
-    "expo-modules-core": "^3.0.16",
+    "eslint": "^9",
+    "expo-module-scripts": "^55.0.2",
+    "expo-modules-core": "^55.0.13",
     "prettier": "^3.3.3"
   },
   "peerDependencies": {
     "expo": "*",
     "react": "*",
     "react-native": "*"
-  },
-  "packageManager": "yarn@4.9.4"
+  }
 }
