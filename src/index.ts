@@ -13,12 +13,12 @@ import {
 // Idea for a PR: Add documentation comments
 
 // --- BarcodeScanner ---
-export function startScan() {
-  return ExpoZebraScannerModule.startScan();
+export function startScan(): void {
+  ExpoZebraScannerModule.startScan();
 }
 
-export function stopScan() {
-  return ExpoZebraScannerModule.stopScan();
+export function stopScan(): void {
+  ExpoZebraScannerModule.stopScan();
 }
 
 export function addListener(
@@ -32,12 +32,12 @@ export function removeListener(listener: any): void {
 }
 
 // --- Custom Scan ---
-export function startCustomScan(action: string) {
-  return ExpoZebraScannerModule.startCustomScan(action);
+export function startCustomScan(action: string): void {
+  ExpoZebraScannerModule.startCustomScan(action);
 }
 
-export function stopCustomScan() {
-  return ExpoZebraScannerModule.stopCustomScan();
+export function stopCustomScan(): void {
+  ExpoZebraScannerModule.stopCustomScan();
 }
 
 export function addCustomListener<T = any>(
@@ -47,14 +47,14 @@ export function addCustomListener<T = any>(
 }
 
 // --- Broadcast ---
-export function sendBroadcast(bundle: BroadcastEvent) {
+export function sendBroadcast(bundle: BroadcastEvent): void {
   ExpoZebraScannerModule.sendBroadcast(bundle);
 }
 
 export function sendActionCommand(
   extraName: string,
   extraData: BroadcastExtras | string,
-) {
+): void {
   ExpoZebraScannerModule.sendBroadcast({
     action: 'com.symbol.datawedge.api.ACTION',
     extras: {

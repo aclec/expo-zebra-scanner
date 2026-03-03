@@ -9,29 +9,25 @@ public class ExpoZebraScannerModule: Module {
     // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
     // The module will be accessible from `requireNativeModule('ExpoZebraScanner')` in JavaScript.
     Name("ExpoZebraScanner")
-
-    // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
-    Function("hello") {
-      return "Hello world! 👋"
-    }
+    Events("onBarcodeScanned", "onCustomScan")
 
     Function("startScan") {
-      return "ExpoZebraScanner not available on IOS."
+      // DataWedge is Android-only.
     }
     Function("stopScan") {
-      return "ExpoZebraScanner not available on IOS."
+      // DataWedge is Android-only.
     }
 
-    Function("sendBroadcast") { (bundle: [String: Any]) -> String in
-      return "ExpoZebraScanner not available on IOS."
+    Function("sendBroadcast") { (_: [String: Any]) in
+      // DataWedge is Android-only.
     }
 
-    Function("startCustomScan") { (action: String) -> String in
-      return "ExpoZebraScanner not available on IOS."
+    Function("startCustomScan") { (_: String) in
+      // DataWedge is Android-only.
     }
 
     Function("stopCustomScan") {
-      return "ExpoZebraScanner not available on IOS."
+      // DataWedge is Android-only.
     }
 
     AsyncFunction("getDataWedgeVersion") { () -> [Int] in

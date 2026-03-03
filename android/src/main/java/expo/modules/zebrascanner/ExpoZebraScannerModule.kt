@@ -7,16 +7,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Bundle
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.os.bundleOf
-
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
-import android.util.Log
 import expo.modules.kotlin.Promise
+import org.json.JSONObject
 
 const val ACTION_BARCODE_SCANNED = "com.symbol.datawedge.ACTION_BARCODE_SCANNED"
 const val scanEvent = "onBarcodeScanned"
@@ -26,6 +19,16 @@ class ExpoZebraScannerModule : Module() {
 
   private var barcodeReceiver: BroadcastReceiver? = null
   private var customReceiver: BroadcastReceiver? = null
+  private var customAction: String? = null
+
+  private fun safeUnregister(context: Context, receiver: BroadcastReceiver?) {
+    if (receiver == null) return
+    try {
+      context.unregisterReceiver(receiver)
+    } catch (_: Throwable) {
+      // No-op: receiver may already be gone during fast-refresh/activity transitions
+    }
+  }
 
   override fun definition() = ModuleDefinition {
 
@@ -33,27 +36,24 @@ class ExpoZebraScannerModule : Module() {
     Events(scanEvent, customScanEvent)
 
     Function("startScan") {
-      val activity = appContext.activityProvider?.currentActivity
-      // appContext.reactContext.sendBroadcast();
-      if(activity != null) {
+      val ctx = appContext.reactContext ?: return@Function null
+      if (barcodeReceiver != null) return@Function null
 
-        val filter = IntentFilter()
-        filter.addCategory(Intent.CATEGORY_DEFAULT)
-        filter.addAction(ACTION_BARCODE_SCANNED)
-
-        barcodeReceiver = BarcodeReceiver(scanEvent, ::sendEvent)
-        ContextCompat.registerReceiver(
-            activity, barcodeReceiver, filter, ContextCompat.RECEIVER_EXPORTED
-        )
+      val filter = IntentFilter().apply {
+        addCategory(Intent.CATEGORY_DEFAULT)
+        addAction(ACTION_BARCODE_SCANNED)
       }
+
+      barcodeReceiver = BarcodeReceiver(scanEvent, ::sendEvent)
+      ContextCompat.registerReceiver(
+        ctx, barcodeReceiver, filter, ContextCompat.RECEIVER_EXPORTED
+      )
     }
 
     Function("stopScan") {
-      val activity = appContext.activityProvider?.currentActivity
-      if (activity != null && barcodeReceiver != null) {
-        activity.unregisterReceiver(barcodeReceiver)
-        barcodeReceiver = null
-      }
+      val ctx = appContext.reactContext ?: return@Function null
+      safeUnregister(ctx, barcodeReceiver)
+      barcodeReceiver = null
     }
 
     // Ported from https://github.com/darryncampbell/react-native-datawedge-intents
@@ -66,8 +66,9 @@ class ExpoZebraScannerModule : Module() {
         intent.action = action
       }
 
-      val extrasMap: Map<String, Any?>? = obj["extras"] as? Map<String, Any?>
-      extrasMap?.forEach { (key, value) ->
+      val extrasMap = obj["extras"] as? Map<*, *>
+      extrasMap?.forEach { (rawKey, value) ->
+        val key = rawKey as? String ?: return@forEach
         val valueStr = value.toString()
 
         when (value) {
@@ -77,8 +78,16 @@ class ExpoZebraScannerModule : Module() {
           is Double -> intent.putExtra(key, value)
           else -> {
             if (valueStr.startsWith("{")) {
-              val bundle = jsonToBundle(JSONObject(valueStr))
-              intent.putExtra(key, bundle)
+              val bundle = try {
+                jsonToBundle(JSONObject(valueStr))
+              } catch (_: Throwable) {
+                null
+              }
+              if (bundle != null) {
+                intent.putExtra(key, bundle)
+              } else {
+                intent.putExtra(key, valueStr)
+              }
             } else {
               intent.putExtra(key, valueStr)
             }
@@ -90,31 +99,30 @@ class ExpoZebraScannerModule : Module() {
     }
 
     Function("startCustomScan") { action: String ->
-      val activity = appContext.activityProvider?.currentActivity
-      if (activity != null) {
-        // If previously registered, unregister first to avoid duplicates
-        if (customReceiver != null) {
-          activity.unregisterReceiver(customReceiver)
-          customReceiver = null
-        }
+      val ctx = appContext.reactContext ?: return@Function null
+      if (customReceiver != null && customAction == action) return@Function null
 
-        val filter = IntentFilter()
-        filter.addCategory(Intent.CATEGORY_DEFAULT)
-        filter.addAction(action)
+      // Re-register on action changes to avoid duplicate receivers
+      safeUnregister(ctx, customReceiver)
+      customReceiver = null
 
-        customReceiver = CustomEventReceiver(customScanEvent, ::sendEvent)
-        ContextCompat.registerReceiver(
-          activity, customReceiver, filter, ContextCompat.RECEIVER_EXPORTED
-        )
+      val filter = IntentFilter().apply {
+        addCategory(Intent.CATEGORY_DEFAULT)
+        addAction(action)
       }
+
+      customReceiver = CustomEventReceiver(customScanEvent, ::sendEvent)
+      customAction = action
+      ContextCompat.registerReceiver(
+        ctx, customReceiver, filter, ContextCompat.RECEIVER_EXPORTED
+      )
     }
 
     Function("stopCustomScan") {
-      val activity = appContext.activityProvider?.currentActivity
-      if (activity != null && customReceiver != null) {
-        activity.unregisterReceiver(customReceiver)
-        customReceiver = null
-      }
+      val ctx = appContext.reactContext ?: return@Function null
+      safeUnregister(ctx, customReceiver)
+      customReceiver = null
+      customAction = null
     }
 
     AsyncFunction("getDataWedgeVersion") { promise: Promise ->
@@ -187,6 +195,15 @@ class ExpoZebraScannerModule : Module() {
         putExtra("com.symbol.datawedge.api.RESULT_PACKAGE", ctx.packageName)
       }
       ctx.sendBroadcast(intent)
+    }
+
+    OnDestroy {
+      val ctx = appContext.reactContext ?: return@OnDestroy
+      safeUnregister(ctx, barcodeReceiver)
+      safeUnregister(ctx, customReceiver)
+      barcodeReceiver = null
+      customReceiver = null
+      customAction = null
     }
 
   }
