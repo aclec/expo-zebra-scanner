@@ -19,6 +19,9 @@ export const useSettings = () => {
                 [key]: value,
             };
             setSettings(_settings);
+            if (!["isIntentEnabled", "isKeystrokeEnterEnabled", "intentPrefix", "keystrokePrefix", "isCustomEventEnabled"].includes(key)) {
+                return;
+            }
 
             const { isIntentEnabled, isKeystrokeEnterEnabled, intentPrefix, keystrokePrefix, isCustomEventEnabled } = _settings;
 

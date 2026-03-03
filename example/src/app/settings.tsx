@@ -15,7 +15,7 @@ import { useZebraCoreFunctions } from "expo-zebra-scanner";
 // PR idea 3: Make this settings persistent with async storage or something if #2 can't be done
 // PR idea 4: Modify createIntentDatawedgeProfile() to avoid reset settings
 export default function SettingsScreen() {
-    const { isIntentEnabled, isKeystrokeEnterEnabled, intentPrefix, keystrokePrefix, isCustomEventEnabled, updateSettings } =
+    const { isIntentEnabled, isKeystrokeEnterEnabled, intentPrefix, keystrokePrefix, isCustomEventEnabled, isCustomActionTesterEnabled, updateSettings } =
         useContext(SettingsContext);
 
     const [intentPrefixValue, setIntentPrefixValue] = useState(intentPrefix);
@@ -113,6 +113,15 @@ export default function SettingsScreen() {
                 <Switch
                     value={isCustomEventEnabled}
                     onValueChange={(value) => updateSettings("isCustomEventEnabled", value)}
+                    trackColor={switchColors}
+                    ios_backgroundColor={switchColors.false}
+                />
+            </View>
+            <View style={styles.configContainer}>
+                <Text style={styles.configLabel}>Enable custom action tester</Text>
+                <Switch
+                    value={isCustomActionTesterEnabled}
+                    onValueChange={(value) => updateSettings("isCustomActionTesterEnabled", value)}
                     trackColor={switchColors}
                     ios_backgroundColor={switchColors.false}
                 />

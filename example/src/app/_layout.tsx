@@ -4,7 +4,7 @@ import { SettingsContext } from "../library/context/SettingsContext";
 import { useSettings } from "../library/hooks/useSettings";
 import { TabBarIcon } from "../components/navigation/TabBarIcon";
 import { useZebraCreateProfile } from "expo-zebra-scanner";
-import { PROFILE_NAME } from "../library/constants/datawedgeStructures";
+import { DEFAULT_PROFILE_NAME } from "../library/constants/datawedgeStructures";
 
 export default function TabLayout() {
     const settings = useSettings();
@@ -13,7 +13,7 @@ export default function TabLayout() {
     // We create the profile with custom decoders when app loads
     useEffect(() => {
         createProfile({
-            PROFILE_NAME,
+            PROFILE_NAME: DEFAULT_PROFILE_NAME,
             PACKAGE_NAME: "expo.modules.zebrascanner.example",
             PARAM_LIST: {
                 decoder_i2of5: "true",
