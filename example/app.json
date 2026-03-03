@@ -2,6 +2,7 @@
   "expo": {
     "name": "expo-zebra-scanner-example",
     "slug": "expo-zebra-scanner-example",
+    "scheme": "expo-zebra-scanner-example",
     "version": "2.0.0",
     "jsEngine": "hermes",
     "newArchEnabled": true,
