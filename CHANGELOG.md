@@ -4,7 +4,7 @@
 
 ### BREAKING CHANGES
 
--   Updated package versioning to match Expo SDK (`55.0.0`).
+-   Updated package versioning to match Expo SDK (`55`).
 -   Public API is now hook-first.
 -   Removed legacy function-based exports from the public entrypoint:
     -   `startScan`, `stopScan`

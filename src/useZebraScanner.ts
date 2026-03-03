@@ -30,11 +30,10 @@ export function useZebraScanner({ onBarcodeScanned, profile, enabled = true, cus
     useEffect(() => {
         if (!enabled || !profile) return;
         createIntentDatawedgeProfile(profile);
-    }, [enabled, profile, profileKey]);
+    }, [enabled, profileKey]);
 
     useEffect(() => {
         if (!enabled) return;
-
         return subscribeBarcodeByAction(resolvedAction, (event) => {
             handlerRef.current?.(event);
         });

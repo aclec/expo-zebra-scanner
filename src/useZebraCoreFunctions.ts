@@ -1,8 +1,8 @@
-import { BroadcastEvent, BroadcastExtras } from "./ExpoZebraBroadcastEvent";
+import { BroadcastEvent } from "./ExpoZebraBroadcastEvent";
 import ExpoZebraScannerModule from "./ExpoZebraScannerModule";
 import { CreateProfileData } from "./ProfileConstants";
-import { DEFAULT_BARCODE_ACTION, DATAWEDGE_API_ACTION } from "./internal/constants";
-import { createIntentDatawedgeProfile, getDataWedgeVersion, sendBroadcast } from "./internal/profile";
+import { DEFAULT_BARCODE_ACTION } from "./internal/constants";
+import { createIntentDatawedgeProfile, getDataWedgeVersion, sendBroadcast, sendActionCommand } from "./internal/profile";
 
 const zebraCoreFunctions = {
     startScan: (): void => {
@@ -24,14 +24,7 @@ const zebraCoreFunctions = {
     sendBroadcast: (bundle: BroadcastEvent): void => {
         sendBroadcast(bundle);
     },
-    sendActionCommand: (extraName: string, extraData: BroadcastExtras | string): void => {
-        sendBroadcast({
-            action: DATAWEDGE_API_ACTION,
-            extras: {
-                [extraName]: extraData,
-            },
-        });
-    },
+    sendActionCommand,
     createProfile: (profile: CreateProfileData): void => {
         createIntentDatawedgeProfile(profile);
     },

@@ -7,7 +7,7 @@ import android.content.Intent
 /**
  * Generic BroadcastReceiver that forwards the entire received Intent to JS.
  */
-class CustomEventReceiver(
+internal class CustomEventReceiver(
   private val eventName: String,
   private val emitter: (name: String, body: android.os.Bundle?) -> Unit
 ) : BroadcastReceiver() {

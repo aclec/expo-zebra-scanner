@@ -29,11 +29,10 @@ export function useZebraCustomScanner<TCustomEvent = ZebraCustomIntentEvent>({ o
     useEffect(() => {
         if (!enabled || !profile) return;
         createIntentDatawedgeProfile(profile);
-    }, [enabled, profile, profileKey]);
+    }, [enabled, profileKey]);
 
     useEffect(() => {
         if (!enabled) return;
-
         return subscribeCustom<TCustomEvent>(resolvedAction, (event) => {
             handlerRef.current?.(event);
         });

@@ -8,7 +8,7 @@ import androidx.core.os.bundleOf
 /**
  * BroadcastReceiver that forwards DataWedge scan intents to JS with a configurable event name.
  */
-class BarcodeReceiver(
+internal class BarcodeReceiver(
   private val eventName: String,
   private val emitter: (name: String, body: android.os.Bundle?) -> Unit
 ) : BroadcastReceiver() {
