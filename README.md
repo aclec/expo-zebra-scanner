@@ -30,7 +30,7 @@ The previous function-based API was removed from public exports. Use hooks:
 
 ## useZebraScanner
 
-Barcode-oriented hook.
+Barcode-oriented hook. Listens to scan events and optionally creates a DataWedge profile automatically.
 
 ```ts
 type UseZebraScannerOptions = {
@@ -49,6 +49,8 @@ Behavior:
 
 
 ```tsx
+import { useState } from "react";
+import { Text, View } from "react-native";
 import { useZebraScanner } from "expo-zebra-scanner";
 import { useState } from "react";
 import { Text, View } from "react-native";
@@ -75,7 +77,7 @@ export function BarcodeListener() {
 
 ## useZebraCustomScanner
 
-Raw intent-oriented hook (full event payload).
+Raw intent-oriented hook — gives you the full event payload, useful for listening to DataWedge API result actions.
 
 ```ts
 type UseZebraCustomScannerOptions<TCustomEvent = ZebraCustomIntentEvent> = {
@@ -93,6 +95,8 @@ Behavior:
 
 
 ```tsx
+import { useState } from "react";
+import { Text, View } from "react-native";
 import { useZebraCustomScanner } from "expo-zebra-scanner";
 import { useState } from "react";
 import { Text, View } from "react-native";
@@ -202,7 +206,7 @@ export function SetupCustomActionProfile() {
 
 ## useZebraCoreFunctions
 
-Low-level imperative API for advanced flows.
+Low-level imperative API for advanced flows (manually trigger scans, send broadcasts, query DataWedge version…).
 
 Returned functions:
 
