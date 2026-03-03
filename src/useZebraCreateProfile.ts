@@ -5,6 +5,6 @@ const createProfile = (profile: CreateProfileData): void => {
     createIntentDatawedgeProfile(profile);
 };
 
-export function useCreateProfile() {
+export function useZebraCreateProfile() {
     return createProfile;
 }
