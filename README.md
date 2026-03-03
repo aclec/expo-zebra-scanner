@@ -101,6 +101,33 @@ Returns a function to create/configure a default DataWedge profile. Call this be
 
 ```ts
 const createProfile = useZebraCreateProfile();
+```
+
+`useZebraCreateProfile()` takes no arguments.
+Options are passed to `createProfile(...)`.
+
+Signature:
+
+```ts
+type CreateProfileData = {
+    PROFILE_NAME: string;
+    PACKAGE_NAME: string;
+    PARAM_LIST?: Record<string, string>;
+    INTENT_ACTION?: string;
+};
+```
+
+Payload options (`createProfile({...})`):
+
+-   `PROFILE_NAME` (required): DataWedge profile name.
+-   `PACKAGE_NAME` (required): Android package to bind profile to.
+-   `PARAM_LIST` (optional): BARCODE plugin decoder/settings overrides.
+-   `INTENT_ACTION` (optional): override DataWedge intent action.
+
+Default usage (recommended):
+
+```ts
+const createProfile = useZebraCreateProfile();
 
 createProfile({
     PROFILE_NAME: "ExpoDatawedgeExample",
@@ -109,6 +136,23 @@ createProfile({
         decoder_qrcode: "true",
         decoder_code128: "true",
     },
+});
+```
+
+Important:
+
+-   A DataWedge profile intent output uses one `intent_action` at a time.
+-   In most cases, do not set `INTENT_ACTION`. Keep the default action `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
+-   Set `INTENT_ACTION` only if you intentionally listen to a custom action (for example `useZebraScanner({ customAction: "..." })`).
+-   If you listen with `useZebraScanner({ customAction })`, set the same action in profile creation via `INTENT_ACTION` (or DataWedge UI / manual command).
+
+Custom action example (optional):
+
+```ts
+createProfile({
+    PROFILE_NAME: "ExpoDatawedgeExample",
+    PACKAGE_NAME: "expo.modules.zebrascanner.example",
+    INTENT_ACTION: "com.mycompany.MY_SCAN_ACTION",
 });
 ```
 

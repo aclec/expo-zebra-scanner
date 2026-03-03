@@ -48,6 +48,15 @@
 -   `useZebraCreateProfile()`
 -   `useZebraCoreFunctions()`
 
+### `createProfile` payload (`CreateProfileData`)
+
+-   Required:
+    -   `PROFILE_NAME: string`
+    -   `PACKAGE_NAME: string`
+-   Optional:
+    -   `PARAM_LIST?: Record<string, string>` (merged with default BARCODE decoders)
+    -   `INTENT_ACTION?: string` (overrides default `com.symbol.datawedge.ACTION_BARCODE_SCANNED`)
+
 ## Behavioral guarantees to preserve
 
 -   No duplicate native listeners for the same JS flow.
@@ -61,6 +70,7 @@
 
 -   **`customNativeSub` is a module-level singleton** (one native JS listener for all custom actions). It is a multiplexer: it dispatches events to handlers filtered by `entry.action === event.action`. Multiple custom actions coexist safely through this mechanism.
 -   **`customAction` in `useZebraScanner` uses the custom path** (`subscribeCustom` / `onCustomScan` native event), then maps `com.symbol.datawedge.data_string` and `com.symbol.datawedge.label_type` extras to `BarcodeEvent`. If the custom action sends data in a different format, `scanData` and `scanLabelType` will be empty strings — use `useZebraCustomScanner` in that case to receive the raw payload.
+-   **DataWedge profile intent output has one action at a time**: a single profile cannot broadcast scanner output to two different `intent_action` values simultaneously.
 -   **Profile creation is explicit**: scanner hooks do not create DataWedge profiles. Call `useZebraCreateProfile` (or `useZebraCoreFunctions().createProfile`) before using the scanner hooks if a profile needs to be configured programmatically.
 
 ## Native Android rules

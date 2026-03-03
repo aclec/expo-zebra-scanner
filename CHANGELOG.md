@@ -26,6 +26,12 @@
     -   `customAction?: string`
 -   `useZebraCreateProfile()` for profile creation.
 -   `useZebraCoreFunctions()` for imperative low-level operations.
+-   `INTENT_ACTION?: string` option in `CreateProfileData` (used with `useZebraCreateProfile()` -> `createProfile(...)`) to override the default DataWedge intent action when needed.
+
+### Changed
+
+-   `createIntentDatawedgeProfile` keeps existing defaults and now applies `INTENT_ACTION` only when explicitly provided.
+-   Documentation clarifies recommended usage: do not set `INTENT_ACTION` in most cases; use it only when listening to a custom action.
 
 ### Android
 
