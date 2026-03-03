@@ -30,6 +30,10 @@ public class ExpoZebraScannerModule: Module {
       // DataWedge is Android-only.
     }
 
+    Function("stopCustomScanForAction") { (_: String) in
+      // DataWedge is Android-only.
+    }
+
     AsyncFunction("getDataWedgeVersion") { () -> [Int] in
       return [0, 0, 0]
     }

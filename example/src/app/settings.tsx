@@ -1,14 +1,7 @@
-import React, { useContext, useEffect, useState } from 'react';
-import {
-  Text,
-  StyleSheet,
-  View,
-  Switch,
-  TextInput,
-  ScrollView,
-} from 'react-native';
-import { SettingsContext } from '../library/context/SettingsContext';
-import * as ExpoZebraScanner from 'expo-zebra-scanner';
+import React, { useContext, useEffect, useState } from "react";
+import { Text, StyleSheet, View, Switch, TextInput, ScrollView } from "react-native";
+import { SettingsContext } from "../library/context/SettingsContext";
+import { useZebraCoreFunctions } from "expo-zebra-scanner";
 
 /*
   The settings shown here are for example purposes, currently there's no way
@@ -22,152 +15,136 @@ import * as ExpoZebraScanner from 'expo-zebra-scanner';
 // PR idea 3: Make this settings persistent with async storage or something if #2 can't be done
 // PR idea 4: Modify createIntentDatawedgeProfile() to avoid reset settings
 export default function SettingsScreen() {
-  const {
-    isIntentEnabled,
-    isKeystrokeEnterEnabled,
-    intentPrefix,
-    keystrokePrefix,
-    isCustomEventEnabled,
-    updateSettings,
-  } = useContext(SettingsContext);
+    const { isIntentEnabled, isKeystrokeEnterEnabled, intentPrefix, keystrokePrefix, isCustomEventEnabled, updateSettings } =
+        useContext(SettingsContext);
 
-  const [intentPrefixValue, setIntentPrefixValue] = useState(intentPrefix);
-  const [keystrokePrefixValue, setKeystrokePrefixValue] =
-    useState(keystrokePrefix);
-  const [dwVersion, setDwVersion] = useState([-1, -1, -1]);
+    const [intentPrefixValue, setIntentPrefixValue] = useState(intentPrefix);
+    const [keystrokePrefixValue, setKeystrokePrefixValue] = useState(keystrokePrefix);
+    const [dwVersion, setDwVersion] = useState([-1, -1, -1]);
+    const { getDataWedgeVersion } = useZebraCoreFunctions();
 
-  useEffect(() => {
-    (async () => {
-      const version = await ExpoZebraScanner.getDataWedgeVersion();
-      setDwVersion(version);
-    })();
-  }, []);
+    useEffect(() => {
+        (async () => {
+            const version = await getDataWedgeVersion();
+            setDwVersion(version);
+        })();
+    }, [getDataWedgeVersion]);
 
-  return (
-    <ScrollView>
-      <View style={styles.configContainerSection}>
-        <Text style={styles.configSectionLabel}>Intent output</Text>
-      </View>
-      <View style={styles.configContainer}>
-        <Text style={styles.configLabel}>Enable intent output</Text>
-        <Switch
-          value={isIntentEnabled}
-          onValueChange={value => updateSettings('isIntentEnabled', value)}
-          disabled={isCustomEventEnabled}
-        />
-      </View>
-      <View style={[styles.configContainer, { paddingVertical: 10 }]}>
-        <Text style={styles.configLabel}>Data prefix</Text>
-        <TextInput
-          value={intentPrefixValue}
-          onChangeText={setIntentPrefixValue}
-          style={[
-            styles.textinput,
-            {
-              borderColor:
-                intentPrefixValue === intentPrefix ? '#D4D4D4' : '#FF4233',
-            },
-          ]}
-          placeholder="Prefix"
-          onSubmitEditing={e =>
-            updateSettings('intentPrefix', e.nativeEvent.text)
-          }
-          editable={!isCustomEventEnabled}
-        />
-      </View>
-      <View style={styles.configContainerSection}>
-        <Text style={styles.configSectionLabel}>Keystroke output</Text>
-      </View>
-      <View style={styles.configContainer}>
-        <Text style={styles.configLabel}>Enable keystroke output</Text>
-        <Switch
-          value={!isIntentEnabled}
-          onValueChange={value => updateSettings('isIntentEnabled', !value)}
-          disabled={isCustomEventEnabled}
-        />
-      </View>
-      <View style={styles.configContainer}>
-        <Text style={styles.configLabel}>Send ENTER key</Text>
-        <Switch
-          value={isKeystrokeEnterEnabled}
-          onValueChange={value =>
-            updateSettings('isKeystrokeEnterEnabled', value)
-          }
-          disabled={isCustomEventEnabled}
-        />
-      </View>
-      <View style={[styles.configContainer, { paddingVertical: 10 }]}>
-        <Text style={styles.configLabel}>Data prefix</Text>
-        <TextInput
-          value={keystrokePrefixValue}
-          onChangeText={setKeystrokePrefixValue}
-          style={[
-            styles.textinput,
-            {
-              borderColor:
-                keystrokePrefixValue === keystrokePrefix
-                  ? '#D4D4D4'
-                  : '#FF4233',
-            },
-          ]}
-          placeholder="Prefix"
-          onSubmitEditing={e =>
-            updateSettings('keystrokePrefix', e.nativeEvent.text)
-          }
-          editable={!isCustomEventEnabled}
-        />
-      </View>
+    return (
+        <ScrollView>
+            <View style={styles.configContainerSection}>
+                <Text style={styles.configSectionLabel}>Intent output</Text>
+            </View>
+            <View style={styles.configContainer}>
+                <Text style={styles.configLabel}>Enable intent output</Text>
+                <Switch
+                    value={isIntentEnabled}
+                    onValueChange={(value) => updateSettings("isIntentEnabled", value)}
+                    disabled={isCustomEventEnabled}
+                />
+            </View>
+            <View style={[styles.configContainer, { paddingVertical: 10 }]}>
+                <Text style={styles.configLabel}>Data prefix</Text>
+                <TextInput
+                    value={intentPrefixValue}
+                    onChangeText={setIntentPrefixValue}
+                    style={[
+                        styles.textinput,
+                        {
+                            borderColor: intentPrefixValue === intentPrefix ? "#D4D4D4" : "#FF4233",
+                        },
+                    ]}
+                    placeholder="Prefix"
+                    onSubmitEditing={(e) => updateSettings("intentPrefix", e.nativeEvent.text)}
+                    editable={!isCustomEventEnabled}
+                />
+            </View>
+            <View style={styles.configContainerSection}>
+                <Text style={styles.configSectionLabel}>Keystroke output</Text>
+            </View>
+            <View style={styles.configContainer}>
+                <Text style={styles.configLabel}>Enable keystroke output</Text>
+                <Switch
+                    value={!isIntentEnabled}
+                    onValueChange={(value) => updateSettings("isIntentEnabled", !value)}
+                    disabled={isCustomEventEnabled}
+                />
+            </View>
+            <View style={styles.configContainer}>
+                <Text style={styles.configLabel}>Send ENTER key</Text>
+                <Switch
+                    value={isKeystrokeEnterEnabled}
+                    onValueChange={(value) => updateSettings("isKeystrokeEnterEnabled", value)}
+                    disabled={isCustomEventEnabled}
+                />
+            </View>
+            <View style={[styles.configContainer, { paddingVertical: 10 }]}>
+                <Text style={styles.configLabel}>Data prefix</Text>
+                <TextInput
+                    value={keystrokePrefixValue}
+                    onChangeText={setKeystrokePrefixValue}
+                    style={[
+                        styles.textinput,
+                        {
+                            borderColor: keystrokePrefixValue === keystrokePrefix ? "#D4D4D4" : "#FF4233",
+                        },
+                    ]}
+                    placeholder="Prefix"
+                    onSubmitEditing={(e) => updateSettings("keystrokePrefix", e.nativeEvent.text)}
+                    editable={!isCustomEventEnabled}
+                />
+            </View>
 
-      <View style={styles.configContainerSection}>
-        <Text style={styles.configSectionLabel}>Custom event</Text>
-      </View>
-      <View style={styles.configContainer}>
-        <Text style={styles.configLabel}>Enable custom event</Text>
-        <Switch
-          value={isCustomEventEnabled}
-          onValueChange={value => updateSettings('isCustomEventEnabled', value)}
-        />
-      </View>
+            <View style={styles.configContainerSection}>
+                <Text style={styles.configSectionLabel}>Custom event</Text>
+            </View>
+            <View style={styles.configContainer}>
+                <Text style={styles.configLabel}>Enable custom event</Text>
+                <Switch
+                    value={isCustomEventEnabled}
+                    onValueChange={(value) => updateSettings("isCustomEventEnabled", value)}
+                />
+            </View>
 
-      <View style={styles.configContainerSection}>
-        <Text style={styles.configSectionLabel}>DataWedge Version</Text>
-      </View>
-      <View style={styles.configContainer}>
-        <Text style={styles.configLabel}>Version:</Text>
-        <Text style={styles.configLabel}>{dwVersion.join(', ')}</Text>
-      </View>
-    </ScrollView>
-  );
+            <View style={styles.configContainerSection}>
+                <Text style={styles.configSectionLabel}>DataWedge Version</Text>
+            </View>
+            <View style={styles.configContainer}>
+                <Text style={styles.configLabel}>Version:</Text>
+                <Text style={styles.configLabel}>{dwVersion.join(", ")}</Text>
+            </View>
+        </ScrollView>
+    );
 }
 
 const styles = StyleSheet.create({
-  configContainer: {
-    backgroundColor: '#FEFEFE',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderColor: '#D4D4D4',
-  },
-  configLabel: {
-    fontSize: 14,
-  },
-  configContainerSection: {
-    backgroundColor: '#FEFEFE',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    marginTop: 20,
-  },
-  configSectionLabel: {
-    fontSize: 12,
-    color: '#33CCFF',
-  },
-  textinput: {
-    borderWidth: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    width: 100,
-  },
+    configContainer: {
+        backgroundColor: "#FEFEFE",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 20,
+        paddingVertical: 20,
+        borderBottomWidth: 1,
+        borderColor: "#D4D4D4",
+    },
+    configLabel: {
+        fontSize: 14,
+    },
+    configContainerSection: {
+        backgroundColor: "#FEFEFE",
+        paddingHorizontal: 20,
+        paddingTop: 10,
+        marginTop: 20,
+    },
+    configSectionLabel: {
+        fontSize: 12,
+        color: "#33CCFF",
+    },
+    textinput: {
+        borderWidth: 1,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        width: 100,
+    },
 });
