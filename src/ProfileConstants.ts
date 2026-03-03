@@ -9,6 +9,7 @@ export type CreateProfileData = {
     PROFILE_NAME: string;
     PACKAGE_NAME: string;
     PARAM_LIST?: ScannerParams;
+    INTENT_ACTION?: string;
 };
 
 export const DEFAULT_BARCODES_CONFIG = {

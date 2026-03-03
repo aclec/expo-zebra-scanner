@@ -1,7 +1,8 @@
-export const PROFILE_NAME = "ExpoZebraScannerExample";
+export const DEFAULT_PROFILE_NAME = "ExpoZebraScannerExample";
+export const CUSTOM_TESTER_PROFILE_NAME = "ExpoZebraScannerExampleCustom";
 
 export const CONFIGURE_INTENT = (enableIntent: boolean) => ({
-    PROFILE_NAME,
+    PROFILE_NAME: DEFAULT_PROFILE_NAME,
     PROFILE_ENABLED: "true",
     CONFIG_MODE: "UPDATE",
     PLUGIN_CONFIG: {
@@ -16,7 +17,7 @@ export const CONFIGURE_INTENT = (enableIntent: boolean) => ({
 });
 
 export const CONFIGURE_INTENT_FORMATTING = (prefix: string) => ({
-    PROFILE_NAME,
+    PROFILE_NAME: DEFAULT_PROFILE_NAME,
     PROFILE_ENABLED: "true",
     CONFIG_MODE: "UPDATE",
     PLUGIN_CONFIG: {
@@ -30,7 +31,7 @@ export const CONFIGURE_INTENT_FORMATTING = (prefix: string) => ({
 });
 
 export const CONFIGURE_KEYSTROKE = (enableKeystroke: boolean) => ({
-    PROFILE_NAME,
+    PROFILE_NAME: DEFAULT_PROFILE_NAME,
     PROFILE_ENABLED: "true",
     CONFIG_MODE: "UPDATE",
     PLUGIN_CONFIG: {
@@ -49,7 +50,7 @@ export const CONFIGURE_KEYSTROKE_FORMATTING = ({
     isKeystrokeEnterEnabled: boolean;
     keystrokePrefix: string;
 }) => ({
-    PROFILE_NAME,
+    PROFILE_NAME: DEFAULT_PROFILE_NAME,
     PROFILE_ENABLED: "true",
     CONFIG_MODE: "UPDATE",
     PLUGIN_CONFIG: {

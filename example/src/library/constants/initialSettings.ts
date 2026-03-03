@@ -5,6 +5,7 @@ export type SettingsType = {
     keystrokePrefix: string;
     // New settings for custom event mode
     isCustomEventEnabled: boolean;
+    isCustomActionTesterEnabled: boolean;
     customEventAction: string;
 };
 
@@ -14,5 +15,6 @@ export const INITIAL_SETTINGS: SettingsType = {
     isKeystrokeEnterEnabled: false,
     keystrokePrefix: "",
     isCustomEventEnabled: false,
+    isCustomActionTesterEnabled: false,
     customEventAction: "com.symbol.datawedge.ACTION_BARCODE_SCANNED",
 };

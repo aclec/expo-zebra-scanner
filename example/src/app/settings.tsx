@@ -15,13 +15,17 @@ import { useZebraCoreFunctions } from "expo-zebra-scanner";
 // PR idea 3: Make this settings persistent with async storage or something if #2 can't be done
 // PR idea 4: Modify createIntentDatawedgeProfile() to avoid reset settings
 export default function SettingsScreen() {
-    const { isIntentEnabled, isKeystrokeEnterEnabled, intentPrefix, keystrokePrefix, isCustomEventEnabled, updateSettings } =
+    const { isIntentEnabled, isKeystrokeEnterEnabled, intentPrefix, keystrokePrefix, isCustomEventEnabled, isCustomActionTesterEnabled, updateSettings } =
         useContext(SettingsContext);
 
     const [intentPrefixValue, setIntentPrefixValue] = useState(intentPrefix);
     const [keystrokePrefixValue, setKeystrokePrefixValue] = useState(keystrokePrefix);
     const [dwVersion, setDwVersion] = useState([-1, -1, -1]);
     const { getDataWedgeVersion } = useZebraCoreFunctions();
+    const switchColors = {
+        true: "#33CC66",
+        false: "#BFC7D1",
+    };
 
     useEffect(() => {
         (async () => {
@@ -41,6 +45,8 @@ export default function SettingsScreen() {
                     value={isIntentEnabled}
                     onValueChange={(value) => updateSettings("isIntentEnabled", value)}
                     disabled={isCustomEventEnabled}
+                    trackColor={switchColors}
+                    ios_backgroundColor={switchColors.false}
                 />
             </View>
             <View style={[styles.configContainer, { paddingVertical: 10 }]}>
@@ -68,6 +74,8 @@ export default function SettingsScreen() {
                     value={!isIntentEnabled}
                     onValueChange={(value) => updateSettings("isIntentEnabled", !value)}
                     disabled={isCustomEventEnabled}
+                    trackColor={switchColors}
+                    ios_backgroundColor={switchColors.false}
                 />
             </View>
             <View style={styles.configContainer}>
@@ -76,6 +84,8 @@ export default function SettingsScreen() {
                     value={isKeystrokeEnterEnabled}
                     onValueChange={(value) => updateSettings("isKeystrokeEnterEnabled", value)}
                     disabled={isCustomEventEnabled}
+                    trackColor={switchColors}
+                    ios_backgroundColor={switchColors.false}
                 />
             </View>
             <View style={[styles.configContainer, { paddingVertical: 10 }]}>
@@ -103,6 +113,17 @@ export default function SettingsScreen() {
                 <Switch
                     value={isCustomEventEnabled}
                     onValueChange={(value) => updateSettings("isCustomEventEnabled", value)}
+                    trackColor={switchColors}
+                    ios_backgroundColor={switchColors.false}
+                />
+            </View>
+            <View style={styles.configContainer}>
+                <Text style={styles.configLabel}>Enable custom action tester</Text>
+                <Switch
+                    value={isCustomActionTesterEnabled}
+                    onValueChange={(value) => updateSettings("isCustomActionTesterEnabled", value)}
+                    trackColor={switchColors}
+                    ios_backgroundColor={switchColors.false}
                 />
             </View>
 

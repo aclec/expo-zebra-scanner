@@ -16,7 +16,7 @@ export function sendActionCommand(extraName: string, extraData: BroadcastExtras 
     });
 }
 
-export function createIntentDatawedgeProfile({ PROFILE_NAME, PACKAGE_NAME, PARAM_LIST = {} }: CreateProfileData): void {
+export function createIntentDatawedgeProfile({ PROFILE_NAME, PACKAGE_NAME, PARAM_LIST = {}, INTENT_ACTION }: CreateProfileData): void {
     sendActionCommand("com.symbol.datawedge.api.CREATE_PROFILE", PROFILE_NAME);
     sendActionCommand("com.symbol.datawedge.api.SET_CONFIG", {
         ...DEFAULT_BARCODES_CONFIG,
@@ -38,6 +38,13 @@ export function createIntentDatawedgeProfile({ PROFILE_NAME, PACKAGE_NAME, PARAM
     sendActionCommand("com.symbol.datawedge.api.SET_CONFIG", {
         ...DEFAULT_INTENT_CONFIG,
         PROFILE_NAME,
+        PLUGIN_CONFIG: {
+            ...DEFAULT_INTENT_CONFIG.PLUGIN_CONFIG,
+            PARAM_LIST: {
+                ...DEFAULT_INTENT_CONFIG.PLUGIN_CONFIG.PARAM_LIST,
+                ...(INTENT_ACTION ? { intent_action: INTENT_ACTION } : {}),
+            },
+        },
     });
     sendActionCommand("com.symbol.datawedge.api.SET_CONFIG", {
         ...DEFAULT_KEYSTROKE_CONFIG,

@@ -4,7 +4,7 @@
 
 ### BREAKING CHANGES
 
--   Updated package versioning to match Expo SDK (`55.0.0`).
+-   Updated package versioning to match Expo SDK (`55`).
 -   Public API is now hook-first.
 -   Removed legacy function-based exports from the public entrypoint:
     -   `startScan`, `stopScan`
@@ -17,17 +17,21 @@
 ### Added
 
 -   `useZebraScanner(options)`:
+    -   `onBarcodeScanned: (event: BarcodeEvent) => void`
     -   `enabled?: boolean`
-    -   `onBarcodeScanned?: (event: BarcodeEvent) => void`
-    -   `profile?: CreateProfileData`
     -   `customAction?: string`
 -   `useZebraCustomScanner(options)` (and alias `useCustomZebraScanner`):
+    -   `onCustomScan: (event: TCustomEvent) => void`
     -   `enabled?: boolean`
-    -   `onCustomScan?: (event: TCustomEvent) => void`
-    -   `profile?: CreateProfileData`
     -   `customAction?: string`
--   `useCreateProfile()` for profile creation.
+-   `useZebraCreateProfile()` for profile creation.
 -   `useZebraCoreFunctions()` for imperative low-level operations.
+-   `INTENT_ACTION?: string` option in `CreateProfileData` (used with `useZebraCreateProfile()` -> `createProfile(...)`) to override the default DataWedge intent action when needed.
+
+### Changed
+
+-   `createIntentDatawedgeProfile` keeps existing defaults and now applies `INTENT_ACTION` only when explicitly provided.
+-   Documentation clarifies recommended usage: do not set `INTENT_ACTION` in most cases; use it only when listening to a custom action.
 
 ### Android
 

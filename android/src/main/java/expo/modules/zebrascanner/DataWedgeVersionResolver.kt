@@ -40,9 +40,11 @@ internal fun requestDataWedgeVersion(context: Context, promise: Promise) {
           promise.resolve(intArrayOf(0, 0, 0))
         }
       } finally {
-        try {
-          context.unregisterReceiver(this)
-        } catch (_: Throwable) {
+        if (completed) {
+          try {
+            context.unregisterReceiver(this)
+          } catch (_: Throwable) {
+          }
         }
       }
     }
@@ -67,7 +69,7 @@ internal fun requestDataWedgeVersion(context: Context, promise: Promise) {
   handler.postDelayed(timeoutRunnable, timeoutMs)
 
   val intent = Intent().apply {
-    action = "com.symbol.datawedge.api.ACTION"
+    action = DATAWEDGE_API_ACTION
     putExtra("com.symbol.datawedge.api.GET_VERSION_INFO", "true")
     putExtra("com.symbol.datawedge.api.SEND_RESULT", "true")
     putExtra("com.symbol.datawedge.api.RESULT_ACTION", resultAction)

@@ -2,53 +2,6 @@ package expo.modules.zebrascanner
 
 import android.content.Intent
 import android.os.Bundle
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
-
-
-// Ported helper to convert JSONObject into Bundle (used by sendBroadcast)
-internal fun jsonToBundle(obj: JSONObject?): Bundle? {
-  if (obj == null) return null
-  val returnBundle = Bundle()
-  try {
-    val keys = obj.keys()
-    while (keys.hasNext()) {
-      val key = keys.next()
-      when (val value = obj.get(key)) {
-        is String -> returnBundle.putString(key, value)
-        is Boolean -> returnBundle.putString(key, value.toString())
-        is Int -> returnBundle.putString(key, value.toString())
-        is Long -> returnBundle.putLong(key, value)
-        is Double -> returnBundle.putDouble(key, value)
-        is JSONArray -> {
-          if (value.length() > 0) {
-            when (value.get(0)) {
-              is String -> {
-                val stringArray = Array(value.length()) { i -> value.getString(i) }
-                returnBundle.putStringArray(key, stringArray)
-              }
-              is Int -> {
-                val intArray = IntArray(value.length()) { i -> value.getInt(i) }
-                returnBundle.putIntArray(key, intArray)
-              }
-              is JSONObject -> {
-                val bundleArray = Array(value.length()) { i -> jsonToBundle(value.getJSONObject(i)) }
-                returnBundle.putParcelableArray(key, bundleArray)
-              }
-              else -> throw IllegalArgumentException("Unsupported JSONArray type for key: $key")
-            }
-          }
-        }
-        is JSONObject -> returnBundle.putBundle(key, jsonToBundle(value))
-        else -> throw IllegalArgumentException("Unsupported type for key: $key")
-      }
-    }
-  } catch (e: JSONException) {
-    e.printStackTrace()
-  }
-  return returnBundle
-}
 
 // Convert an Intent into a Bundle safe to emit to JS listeners
 internal fun intentToBundle(intent: Intent): Bundle {
@@ -88,9 +41,8 @@ internal fun intentToBundle(intent: Intent): Bundle {
   return b
 }
 
-
 internal fun parseVersion(v: String?): IntArray {
-  if (v == null) return intArrayOf(0,0,0)
+  if (v == null) return intArrayOf(0, 0, 0)
   val parts = v.trim().split('.', '-', ' ').filter { it.isNotEmpty() }
   val nums = IntArray(3)
   for (i in 0..2) {
