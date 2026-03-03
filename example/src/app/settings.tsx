@@ -22,6 +22,10 @@ export default function SettingsScreen() {
     const [keystrokePrefixValue, setKeystrokePrefixValue] = useState(keystrokePrefix);
     const [dwVersion, setDwVersion] = useState([-1, -1, -1]);
     const { getDataWedgeVersion } = useZebraCoreFunctions();
+    const switchColors = {
+        true: "#33CC66",
+        false: "#BFC7D1",
+    };
 
     useEffect(() => {
         (async () => {
@@ -41,6 +45,8 @@ export default function SettingsScreen() {
                     value={isIntentEnabled}
                     onValueChange={(value) => updateSettings("isIntentEnabled", value)}
                     disabled={isCustomEventEnabled}
+                    trackColor={switchColors}
+                    ios_backgroundColor={switchColors.false}
                 />
             </View>
             <View style={[styles.configContainer, { paddingVertical: 10 }]}>
@@ -68,6 +74,8 @@ export default function SettingsScreen() {
                     value={!isIntentEnabled}
                     onValueChange={(value) => updateSettings("isIntentEnabled", !value)}
                     disabled={isCustomEventEnabled}
+                    trackColor={switchColors}
+                    ios_backgroundColor={switchColors.false}
                 />
             </View>
             <View style={styles.configContainer}>
@@ -76,6 +84,8 @@ export default function SettingsScreen() {
                     value={isKeystrokeEnterEnabled}
                     onValueChange={(value) => updateSettings("isKeystrokeEnterEnabled", value)}
                     disabled={isCustomEventEnabled}
+                    trackColor={switchColors}
+                    ios_backgroundColor={switchColors.false}
                 />
             </View>
             <View style={[styles.configContainer, { paddingVertical: 10 }]}>
@@ -103,6 +113,8 @@ export default function SettingsScreen() {
                 <Switch
                     value={isCustomEventEnabled}
                     onValueChange={(value) => updateSettings("isCustomEventEnabled", value)}
+                    trackColor={switchColors}
+                    ios_backgroundColor={switchColors.false}
                 />
             </View>
 

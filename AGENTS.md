@@ -17,7 +17,7 @@
 -   `src/internal/zebraManager.ts`: singleton subscription manager with dedup + ref counting.
 -   `src/useZebraScanner.ts`: barcode-focused hook.
 -   `src/useZebraCustomScanner.ts`: raw custom-intent hook.
--   `src/useCreateProfile.ts`: profile creation hook.
+-   `src/useZebraCreateProfile.ts`: profile creation hook (`useZebraCreateProfile`).
 -   `src/useZebraCoreFunctions.ts`: imperative core functions hook.
 
 ### Android (Kotlin)
@@ -39,15 +39,13 @@
 
 -   `useZebraScanner(options)`
     -   `onBarcodeScanned: (event: BarcodeEvent) => void`
-    -   `profile?: CreateProfileData`
     -   `enabled?: boolean`
     -   `customAction?: string`
 -   `useZebraCustomScanner(options)` / alias `useCustomZebraScanner`
     -   `onCustomScan: (event: TCustomEvent) => void`
-    -   `profile?: CreateProfileData`
     -   `enabled?: boolean`
     -   `customAction?: string`
--   `useCreateProfile()`
+-   `useZebraCreateProfile()`
 -   `useZebraCoreFunctions()`
 
 ## Behavioral guarantees to preserve
@@ -57,7 +55,13 @@
 -   Multiple custom actions must run in parallel without overriding each other.
 -   Default action fallback remains `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
 -   iOS keeps API shape but returns no-op / neutral values.
--   Profile creation effect is keyed on profile content (`profileKey`), not reference — avoids redundant DataWedge calls on re-renders.
+-   Profile creation is decoupled from scanner hooks: call `useZebraCreateProfile` explicitly before subscribing.
+
+## Known design constraints
+
+-   **`customNativeSub` is a module-level singleton** (one native JS listener for all custom actions). It is a multiplexer: it dispatches events to handlers filtered by `entry.action === event.action`. Multiple custom actions coexist safely through this mechanism.
+-   **`customAction` in `useZebraScanner` uses the custom path** (`subscribeCustom` / `onCustomScan` native event), then maps `com.symbol.datawedge.data_string` and `com.symbol.datawedge.label_type` extras to `BarcodeEvent`. If the custom action sends data in a different format, `scanData` and `scanLabelType` will be empty strings — use `useZebraCustomScanner` in that case to receive the raw payload.
+-   **Profile creation is explicit**: scanner hooks do not create DataWedge profiles. Call `useZebraCreateProfile` (or `useZebraCoreFunctions().createProfile`) before using the scanner hooks if a profile needs to be configured programmatically.
 
 ## Native Android rules
 

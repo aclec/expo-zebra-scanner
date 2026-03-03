@@ -3,13 +3,14 @@ package expo.modules.zebrascanner
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 
 /**
  * Generic BroadcastReceiver that forwards the entire received Intent to JS.
  */
 internal class CustomEventReceiver(
   private val eventName: String,
-  private val emitter: (name: String, body: android.os.Bundle?) -> Unit
+  private val emitter: (name: String, body: Bundle?) -> Unit
 ) : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
     val payload = intentToBundle(intent)

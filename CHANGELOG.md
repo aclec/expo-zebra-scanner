@@ -17,16 +17,14 @@
 ### Added
 
 -   `useZebraScanner(options)`:
+    -   `onBarcodeScanned: (event: BarcodeEvent) => void`
     -   `enabled?: boolean`
-    -   `onBarcodeScanned?: (event: BarcodeEvent) => void`
-    -   `profile?: CreateProfileData`
     -   `customAction?: string`
 -   `useZebraCustomScanner(options)` (and alias `useCustomZebraScanner`):
+    -   `onCustomScan: (event: TCustomEvent) => void`
     -   `enabled?: boolean`
-    -   `onCustomScan?: (event: TCustomEvent) => void`
-    -   `profile?: CreateProfileData`
     -   `customAction?: string`
--   `useCreateProfile()` for profile creation.
+-   `useZebraCreateProfile()` for profile creation.
 -   `useZebraCoreFunctions()` for imperative low-level operations.
 
 ### Android

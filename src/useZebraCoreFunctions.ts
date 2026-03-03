@@ -1,6 +1,4 @@
-import { BroadcastEvent } from "./ExpoZebraBroadcastEvent";
 import ExpoZebraScannerModule from "./ExpoZebraScannerModule";
-import { CreateProfileData } from "./ProfileConstants";
 import { DEFAULT_BARCODE_ACTION } from "./internal/constants";
 import { createIntentDatawedgeProfile, getDataWedgeVersion, sendBroadcast, sendActionCommand } from "./internal/profile";
 
@@ -21,13 +19,9 @@ const zebraCoreFunctions = {
         }
         ExpoZebraScannerModule.stopCustomScan();
     },
-    sendBroadcast: (bundle: BroadcastEvent): void => {
-        sendBroadcast(bundle);
-    },
+    sendBroadcast,
     sendActionCommand,
-    createProfile: (profile: CreateProfileData): void => {
-        createIntentDatawedgeProfile(profile);
-    },
+    createProfile: createIntentDatawedgeProfile,
     getDataWedgeVersion,
 };
 

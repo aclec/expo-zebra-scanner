@@ -3,12 +3,12 @@ import { Tabs } from "expo-router";
 import { SettingsContext } from "../library/context/SettingsContext";
 import { useSettings } from "../library/hooks/useSettings";
 import { TabBarIcon } from "../components/navigation/TabBarIcon";
-import { useCreateProfile } from "expo-zebra-scanner";
+import { useZebraCreateProfile } from "expo-zebra-scanner";
 import { PROFILE_NAME } from "../library/constants/datawedgeStructures";
 
 export default function TabLayout() {
     const settings = useSettings();
-    const createProfile = useCreateProfile();
+    const createProfile = useZebraCreateProfile();
 
     // We create the profile with custom decoders when app loads
     useEffect(() => {

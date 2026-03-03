@@ -23,7 +23,7 @@ The previous function-based API was removed from public exports. Use hooks:
 
 -   `useZebraScanner`
 -   `useZebraCustomScanner` (alias: `useCustomZebraScanner`)
--   `useCreateProfile`
+-   `useZebraCreateProfile`
 -   `useZebraCoreFunctions`
 
 ---
@@ -35,7 +35,6 @@ Barcode-oriented hook.
 ```ts
 type UseZebraScannerOptions = {
     onBarcodeScanned: (event: BarcodeEvent) => void;
-    profile?: CreateProfileData;
     enabled?: boolean;
     customAction?: string;
 };
@@ -44,8 +43,9 @@ type UseZebraScannerOptions = {
 Behavior:
 
 -   If `customAction` is omitted, it listens to the default action: `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
--   If `customAction` is provided, it listens on that action and maps payload to `BarcodeEvent`.
+-   If `customAction` is provided, it listens on that action and maps `com.symbol.datawedge.data_string` / `com.symbol.datawedge.label_type` extras to `BarcodeEvent`.
 -   Multiple hook instances are safe: subscriptions are deduplicated and ref-counted.
+-   To create a DataWedge profile, call `useZebraCreateProfile` separately before using this hook.
 
 Example:
 
@@ -54,13 +54,8 @@ import { useZebraScanner } from "expo-zebra-scanner";
 
 useZebraScanner({
     enabled: true,
-    customAction: "com.symbol.datawedge.ACTION_BARCODE_SCANNED",
     onBarcodeScanned: (event) => {
         console.log(event.scanData, event.scanLabelType);
-    },
-    profile: {
-        PROFILE_NAME: "ExpoDatawedgeExample",
-        PACKAGE_NAME: "expo.modules.zebrascanner.example",
     },
 });
 ```
@@ -74,7 +69,6 @@ Raw intent-oriented hook (full event payload).
 ```ts
 type UseZebraCustomScannerOptions<TCustomEvent = ZebraCustomIntentEvent> = {
     onCustomScan: (event: TCustomEvent) => void;
-    profile?: CreateProfileData;
     enabled?: boolean;
     customAction?: string;
 };
@@ -101,12 +95,12 @@ useZebraCustomScanner({
 
 ---
 
-## useCreateProfile
+## useZebraCreateProfile
 
-Returns a function to create/configure a default DataWedge profile.
+Returns a function to create/configure a default DataWedge profile. Call this before using the scanner hooks.
 
 ```ts
-const createProfile = useCreateProfile();
+const createProfile = useZebraCreateProfile();
 
 createProfile({
     PROFILE_NAME: "ExpoDatawedgeExample",

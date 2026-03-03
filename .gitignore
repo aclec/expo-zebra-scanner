@@ -62,3 +62,4 @@ android/keystores/debug.keystore
 example/android/
 example/ios/
 /.expo/
+/.claude/
