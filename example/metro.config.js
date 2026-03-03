@@ -9,8 +9,18 @@ const config = getDefaultConfig(__dirname);
 // excludes the one from the parent folder when bundling.
 config.resolver.blockList = [
   ...Array.from(config.resolver.blockList ?? []),
+  new RegExp(path.resolve('..', 'node_modules', 'react')),
   new RegExp(path.resolve('..', 'node_modules', 'react-native')),
 ];
+
+// Ensure a single React/React Native instance is used by both example app and local module source.
+config.resolver.extraNodeModules = {
+  ...(config.resolver.extraNodeModules ?? {}),
+  react: path.resolve(__dirname, 'node_modules', 'react'),
+  'react/jsx-runtime': path.resolve(__dirname, 'node_modules', 'react', 'jsx-runtime'),
+  'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules', 'react', 'jsx-dev-runtime'),
+  'react-native': path.resolve(__dirname, 'node_modules', 'react-native'),
+};
 
 config.resolver.nodeModulesPaths = [
   path.resolve(__dirname, './node_modules'),

@@ -1,10 +1,10 @@
-import { useCallback } from "react";
-
 import { CreateProfileData } from "./ProfileConstants";
 import { createIntentDatawedgeProfile } from "./internal/profile";
 
+const createProfile = (profile: CreateProfileData): void => {
+    createIntentDatawedgeProfile(profile);
+};
+
 export function useCreateProfile() {
-    return useCallback((profile: CreateProfileData): void => {
-        createIntentDatawedgeProfile(profile);
-    }, []);
+    return createProfile;
 }
