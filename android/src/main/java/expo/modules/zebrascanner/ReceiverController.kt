@@ -13,6 +13,11 @@ internal class ReceiverController(
   private var barcodeReceiver: BroadcastReceiver? = null
   private val customReceivers = mutableMapOf<String, BroadcastReceiver>()
 
+  private fun normalizeAction(action: String): String? {
+    val normalized = action.trim()
+    return normalized.takeIf { it.isNotEmpty() }
+  }
+
   private fun safeUnregister(context: Context, receiver: BroadcastReceiver?) {
     if (receiver == null) return
     try {
@@ -30,13 +35,18 @@ internal class ReceiverController(
       addAction(ACTION_BARCODE_SCANNED)
     }
 
-    barcodeReceiver = BarcodeReceiver(EVENT_BARCODE_SCANNED, emitter)
-    ContextCompat.registerReceiver(
-      context,
-      barcodeReceiver,
-      filter,
-      ContextCompat.RECEIVER_EXPORTED
-    )
+    val receiver = BarcodeReceiver(EVENT_BARCODE_SCANNED, emitter)
+    try {
+      ContextCompat.registerReceiver(
+        context,
+        receiver,
+        filter,
+        ContextCompat.RECEIVER_EXPORTED
+      )
+      barcodeReceiver = receiver
+    } catch (_: Throwable) {
+      // Keep internal state unchanged if registration fails.
+    }
   }
 
   fun stopBarcodeScan(context: Context) {
@@ -45,22 +55,26 @@ internal class ReceiverController(
   }
 
   fun startCustomScan(context: Context, action: String) {
-    if (action.isBlank()) return
-    if (customReceivers.containsKey(action)) return
+    val normalizedAction = normalizeAction(action) ?: return
+    if (customReceivers.containsKey(normalizedAction)) return
 
     val filter = IntentFilter().apply {
       addCategory(Intent.CATEGORY_DEFAULT)
-      addAction(action)
+      addAction(normalizedAction)
     }
 
     val customReceiver = CustomEventReceiver(EVENT_CUSTOM_SCAN, emitter)
-    customReceivers[action] = customReceiver
-    ContextCompat.registerReceiver(
-      context,
-      customReceiver,
-      filter,
-      ContextCompat.RECEIVER_EXPORTED
-    )
+    try {
+      ContextCompat.registerReceiver(
+        context,
+        customReceiver,
+        filter,
+        ContextCompat.RECEIVER_EXPORTED
+      )
+      customReceivers[normalizedAction] = customReceiver
+    } catch (_: Throwable) {
+      // Keep internal state unchanged if registration fails.
+    }
   }
 
   fun stopAllCustomScans(context: Context) {
@@ -69,7 +83,8 @@ internal class ReceiverController(
   }
 
   fun stopCustomScanForAction(context: Context, action: String) {
-    val receiver = customReceivers.remove(action) ?: return
+    val normalizedAction = normalizeAction(action) ?: return
+    val receiver = customReceivers.remove(normalizedAction) ?: return
     safeUnregister(context, receiver)
   }
 

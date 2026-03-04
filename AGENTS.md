@@ -23,12 +23,12 @@
 ### Android (Kotlin)
 
 -   `ExpoZebraScannerModule.kt`: Expo module entry point, delegates all work to `ReceiverController`.
--   `ReceiverController.kt`: lifecycle-safe register/unregister of barcode and custom receivers.
--   `BarcodeReceiver.kt` (`internal`): receives `ACTION_BARCODE_SCANNED` broadcast, emits `onBarcodeScanned`.
+-   `ReceiverController.kt`: lifecycle-safe register/unregister of barcode and custom receivers, with trimmed custom-action keys.
+-   `BarcodeReceiver.kt` (`internal`): receives `ACTION_BARCODE_SCANNED` broadcast, emits `onBarcodeScanned` with non-null string payload fields.
 -   `CustomEventReceiver.kt` (`internal`): receives arbitrary custom action broadcasts, emits `onCustomScan`.
 -   `BroadcastIntentBuilder.kt`: converts JS payload (`Map<String, Any?>`) to Android `Intent` with proper Bundle extras. Handles nested `Map<*, *>` (→ `Bundle`) and `List<*>` (→ `Parcelable[]`/`StringArray`).
 -   `IntentUtils.kt`: `intentToBundle` (Intent → Bundle for JS emission), `parseVersion`.
--   `DataWedgeVersionResolver.kt`: one-shot async DataWedge version query with timeout and cleanup.
+-   `DataWedgeVersionResolver.kt`: one-shot async DataWedge version query with timeout, single completion, and guaranteed cleanup/fallback.
 -   `ZebraConstants.kt`: internal Kotlin constants (`ACTION_BARCODE_SCANNED`, `DATAWEDGE_API_ACTION`, event names).
 
 ### iOS (Swift)
@@ -67,14 +67,17 @@
 -   `stopScan()` / `stopCustomScanForAction(action)` called only when the stack becomes empty.
 -   Default action fallback remains `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
 -   Actions are normalized with `trim()` before routing/start/stop to avoid whitespace variants creating different stacks.
+-   Barcode events emitted from native always include string values for `scanData` and `scanLabelType` (empty string fallback).
 -   iOS keeps API shape but returns no-op / neutral values.
 -   Profile creation is decoupled from scanner hooks: call `useZebraCreateProfile` explicitly before subscribing.
 -   Invalid public inputs fail closed (log + no-op) instead of throwing at runtime.
+-   DataWedge version lookup resolves once and falls back to `[0, 0, 0]` on timeout/error.
 
 ## Known design constraints
 
 -   **`barcodeNativeSub` / `customNativeSub` are module-level singletons**. `customNativeSub` is a multiplexer: it dispatches to the top of the per-action stack. Multiple actions coexist via `customStacks: Map<string, CustomEntry[]>`.
 -   **LIFO stack per action**: `barcodeStack: BarcodeEntry[]` and `customStacks: Map<string, CustomEntry[]>`. Only `stack[stack.length - 1]` receives the event. Unsubscribing splices the entry by ID; if removed from the middle the next-top entry resumes. `__DEV__` warning fires at subscribe-time when `stack.length > 0`.
+-   **Native custom receiver keys are normalized**: `ReceiverController` trims action strings before register/lookup/unregister, so whitespace-only actions are ignored and equivalent actions share the same receiver.
 -   **`customAction` in `useZebraScanner` uses the custom path** (`subscribeCustom` / `onCustomScan` native event), then maps `com.symbol.datawedge.data_string` and `com.symbol.datawedge.label_type` extras to `BarcodeEvent`. If the custom action sends data in a different format, `scanData` and `scanLabelType` will be empty strings — use `useZebraCustomScanner` in that case to receive the raw payload.
 -   **DataWedge profile intent output has one action at a time**: a single profile cannot broadcast scanner output to two different `intent_action` values simultaneously.
 -   **Profile creation is explicit**: scanner hooks do not create DataWedge profiles. Call `useZebraCreateProfile` (or `useZebraCoreFunctions().createProfile`) before using the scanner hooks if a profile needs to be configured programmatically.
@@ -88,10 +91,12 @@
 ## Native Android rules
 
 -   Keep receiver lifecycle safe (`register`/`unregister` symmetry).
+-   Keep registration state atomic: only store receiver references/maps after successful `registerReceiver`.
 -   Keep support for `stopCustomScanForAction(action)` for per-action cleanup.
 -   Avoid crashes on rapid mount/unmount or Fast Refresh (safeUnregister catches exceptions).
+-   Ignore blank `sendBroadcast` actions and catch native broadcast errors to avoid crashing JS callers.
 -   `BroadcastIntentBuilder` must handle Expo JSI types: `Map<*, *>` → `Bundle`, `List<Map>` → `Parcelable[]`, `List<String>` → `StringArray`. Never rely on `.toString()` for serialization.
--   `DataWedgeVersionResolver`: unregister the temporary receiver only when the result is fully handled (`completed == true`).
+-   `DataWedgeVersionResolver`: resolve the promise once, clear timeout callback, and unregister temporary receiver on all completion paths.
 -   `DATAWEDGE_API_ACTION` is defined in both `src/internal/constants.ts` (TS) and `ZebraConstants.kt` (Kotlin) — keep them in sync if the value ever changes.
 
 ## Lint/build checks

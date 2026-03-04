@@ -15,37 +15,40 @@ internal fun requestDataWedgeVersion(context: Context, promise: Promise) {
   val timeoutMs = 3000L
 
   var completed = false
+  var receiverRegistered = false
   val handler = Handler(Looper.getMainLooper())
   var timeoutRunnable: Runnable? = null
+  var receiver: BroadcastReceiver? = null
+  val fallback = intArrayOf(0, 0, 0)
 
-  val receiver = object : BroadcastReceiver() {
+  fun complete(result: IntArray) {
+    if (completed) return
+    completed = true
+    timeoutRunnable?.let { handler.removeCallbacks(it) }
+    if (receiverRegistered) {
+      try {
+        receiver?.let { context.unregisterReceiver(it) }
+      } catch (_: Throwable) {
+      } finally {
+        receiverRegistered = false
+      }
+    }
+    promise.resolve(result)
+  }
+
+  receiver = object : BroadcastReceiver() {
     override fun onReceive(ctx: Context, intent: Intent) {
       if (completed) return
       try {
         if (intent.action == resultAction && intent.hasExtra("com.symbol.datawedge.api.RESULT_GET_VERSION_INFO")) {
           val bundle = intent.getBundleExtra("com.symbol.datawedge.api.RESULT_GET_VERSION_INFO")
           val dw = bundle?.getString("DATAWEDGE") ?: "0.0.0"
-          completed = true
-          timeoutRunnable?.let { handler.removeCallbacks(it) }
-          promise.resolve(parseVersion(dw))
+          complete(parseVersion(dw))
         } else if (intent.action == resultAction && intent.hasExtra("com.symbol.datawedge.api.RESULT_INFO")) {
-          completed = true
-          timeoutRunnable?.let { handler.removeCallbacks(it) }
-          promise.resolve(intArrayOf(0, 0, 0))
+          complete(fallback)
         }
       } catch (_: Throwable) {
-        if (!completed) {
-          completed = true
-          timeoutRunnable?.let { handler.removeCallbacks(it) }
-          promise.resolve(intArrayOf(0, 0, 0))
-        }
-      } finally {
-        if (completed) {
-          try {
-            context.unregisterReceiver(this)
-          } catch (_: Throwable) {
-          }
-        }
+        complete(fallback)
       }
     }
   }
@@ -54,17 +57,20 @@ internal fun requestDataWedgeVersion(context: Context, promise: Promise) {
     addAction(resultAction)
     addCategory(resultCategory)
   }
-  ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
+  val localReceiver = receiver ?: run {
+    complete(fallback)
+    return
+  }
+  try {
+    ContextCompat.registerReceiver(context, localReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
+    receiverRegistered = true
+  } catch (_: Throwable) {
+    complete(fallback)
+    return
+  }
 
   timeoutRunnable = Runnable {
-    if (!completed) {
-      completed = true
-      try {
-        context.unregisterReceiver(receiver)
-      } catch (_: Throwable) {
-      }
-      promise.resolve(intArrayOf(0, 0, 0))
-    }
+    complete(fallback)
   }
   handler.postDelayed(timeoutRunnable, timeoutMs)
 
@@ -76,5 +82,9 @@ internal fun requestDataWedgeVersion(context: Context, promise: Promise) {
     putExtra("com.symbol.datawedge.api.RESULT_CATEGORY", resultCategory)
     putExtra("com.symbol.datawedge.api.RESULT_PACKAGE", context.packageName)
   }
-  context.sendBroadcast(intent)
+  try {
+    context.sendBroadcast(intent)
+  } catch (_: Throwable) {
+    complete(fallback)
+  }
 }
