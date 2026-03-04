@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { BarcodeEvent } from "./ExpoZebraScannerEvent";
 import { resolveAction, subscribeBarcodeByAction } from "./internal/zebraManager";
@@ -14,7 +14,7 @@ export function useZebraScanner({ onBarcodeScanned, enabled = true, customAction
     const handlerRef = useRef(onBarcodeScanned);
     handlerRef.current = onBarcodeScanned;
 
-    const resolvedAction = resolveAction(customAction);
+    const resolvedAction = useMemo(() => resolveAction(customAction), [customAction]);
 
     useEffect(() => {
         if (!enabled) return;

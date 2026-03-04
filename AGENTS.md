@@ -14,7 +14,7 @@
 -   `src/index.ts`: public API exports (hooks + types only).
 -   `src/internal/constants.ts`: shared string constants (`DEFAULT_BARCODE_ACTION`, `DATAWEDGE_API_ACTION`).
 -   `src/internal/profile.ts`: profile creation and low-level broadcast helpers (`sendBroadcast`, `sendActionCommand`, `createIntentDatawedgeProfile`, `getDataWedgeVersion`).
--   `src/internal/zebraManager.ts`: singleton subscription manager with dedup + ref counting.
+-   `src/internal/zebraManager.ts`: singleton subscription manager with LIFO exclusive dispatch per action.
 -   `src/useZebraScanner.ts`: barcode-focused hook.
 -   `src/useZebraCustomScanner.ts`: raw custom-intent hook.
 -   `src/useZebraCreateProfile.ts`: profile creation hook (`useZebraCreateProfile`).
@@ -59,19 +59,24 @@
 
 ## Behavioral guarantees to preserve
 
--   No duplicate native listeners for the same JS flow.
--   Multiple hook instances must coexist safely.
--   Multiple custom actions must run in parallel without overriding each other.
+-   One native JS listener per event type (`barcodeNativeSub`, `customNativeSub`) regardless of how many hooks are mounted.
+-   For a given action, **only one handler receives each event** (LIFO exclusive dispatch — last subscriber wins).
+-   When the top subscriber unsubscribes, the previous one resumes automatically.
+-   Multiple distinct custom actions run in parallel and are fully isolated from each other.
+-   `startScan()` / `startCustomScan(action)` called only when the stack for that action goes from 0 → 1.
+-   `stopScan()` / `stopCustomScanForAction(action)` called only when the stack becomes empty.
 -   Default action fallback remains `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
 -   iOS keeps API shape but returns no-op / neutral values.
 -   Profile creation is decoupled from scanner hooks: call `useZebraCreateProfile` explicitly before subscribing.
 
 ## Known design constraints
 
--   **`customNativeSub` is a module-level singleton** (one native JS listener for all custom actions). It is a multiplexer: it dispatches events to handlers filtered by `entry.action === event.action`. Multiple custom actions coexist safely through this mechanism.
+-   **`barcodeNativeSub` / `customNativeSub` are module-level singletons**. `customNativeSub` is a multiplexer: it dispatches to the top of the per-action stack. Multiple actions coexist via `customStacks: Map<string, CustomEntry[]>`.
+-   **LIFO stack per action**: `barcodeStack: BarcodeEntry[]` and `customStacks: Map<string, CustomEntry[]>`. Only `stack[stack.length - 1]` receives the event. Unsubscribing splices the entry by ID; if removed from the middle the next-top entry resumes. `__DEV__` warning fires at subscribe-time when `stack.length > 0`.
 -   **`customAction` in `useZebraScanner` uses the custom path** (`subscribeCustom` / `onCustomScan` native event), then maps `com.symbol.datawedge.data_string` and `com.symbol.datawedge.label_type` extras to `BarcodeEvent`. If the custom action sends data in a different format, `scanData` and `scanLabelType` will be empty strings — use `useZebraCustomScanner` in that case to receive the raw payload.
 -   **DataWedge profile intent output has one action at a time**: a single profile cannot broadcast scanner output to two different `intent_action` values simultaneously.
 -   **Profile creation is explicit**: scanner hooks do not create DataWedge profiles. Call `useZebraCreateProfile` (or `useZebraCoreFunctions().createProfile`) before using the scanner hooks if a profile needs to be configured programmatically.
+-   **Native calls are guarded**: `startScan`, `stopScan`, `startCustomScan`, `stopCustomScanForAction` are wrapped in `try/catch` — a native failure is logged but does not corrupt JS subscription state.
 
 ## Native Android rules
 

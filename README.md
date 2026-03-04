@@ -42,9 +42,9 @@ type UseZebraScannerOptions = {
 
 Behavior:
 
--   If `customAction` is omitted, it listens to the default action: `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
--   If `customAction` is provided, it listens on that action and maps `com.symbol.datawedge.data_string` / `com.symbol.datawedge.label_type` extras to `BarcodeEvent`.
--   Multiple hook instances are safe: subscriptions are deduplicated and ref-counted.
+-   If `customAction` is omitted, listens on the default action: `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
+-   If `customAction` is provided, listens on that action and maps `com.symbol.datawedge.data_string` / `com.symbol.datawedge.label_type` extras to `BarcodeEvent`.
+-   **Exclusive dispatch (LIFO)**: when multiple instances listen to the same action, only the last mounted one receives scans. When it unmounts, the previous one resumes automatically. Use `enabled` to yield control explicitly.
 -   To create a DataWedge profile, call `useZebraCreateProfile` separately before using this hook.
 
 
@@ -88,7 +88,8 @@ type UseZebraCustomScannerOptions<TCustomEvent = ZebraCustomIntentEvent> = {
 Behavior:
 
 -   If `customAction` is omitted, default action is: `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
--   Works with multiple parallel actions safely.
+-   **Exclusive dispatch (LIFO)**: for a given action, only the last mounted subscriber receives events. Previous ones resume when the top one unmounts.
+-   Different `customAction` values are fully isolated — multiple distinct actions run in parallel.
 -   Hook alias also available: `useCustomZebraScanner`.
 
 

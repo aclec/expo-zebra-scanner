@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { resolveAction, subscribeCustom, type ZebraCustomIntentEvent } from "./internal/zebraManager";
 
@@ -13,7 +13,7 @@ export function useZebraCustomScanner<TCustomEvent = ZebraCustomIntentEvent>({ o
     const handlerRef = useRef(onCustomScan);
     handlerRef.current = onCustomScan;
 
-    const resolvedAction = resolveAction(customAction);
+    const resolvedAction = useMemo(() => resolveAction(customAction), [customAction]);
 
     useEffect(() => {
         if (!enabled) return;
