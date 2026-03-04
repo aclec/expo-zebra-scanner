@@ -14,8 +14,8 @@ internal class BarcodeReceiver(
   private val emitter: (name: String, body: Bundle?) -> Unit
 ) : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
-    val scanData = intent.getStringExtra("com.symbol.datawedge.data_string")
-    val scanLabelType = intent.getStringExtra("com.symbol.datawedge.label_type")
+    val scanData = intent.getStringExtra("com.symbol.datawedge.data_string") ?: ""
+    val scanLabelType = intent.getStringExtra("com.symbol.datawedge.label_type") ?: ""
 
     val eventData = bundleOf(
       "scanData" to scanData,

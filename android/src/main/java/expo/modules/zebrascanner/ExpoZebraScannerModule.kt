@@ -27,7 +27,12 @@ class ExpoZebraScannerModule : Module() {
     Function("sendBroadcast") { payload: Map<String, Any?> ->
       val ctx = appContext.reactContext ?: return@Function null
       val intent = buildBroadcastIntent(payload)
-      ctx.sendBroadcast(intent)
+      if (intent.action.isNullOrBlank()) return@Function null
+      try {
+        ctx.sendBroadcast(intent)
+      } catch (_: Throwable) {
+        // Ignore invalid broadcast payloads to avoid crashing the JS caller.
+      }
     }
 
     Function("startCustomScan") { action: String ->
