@@ -1,11 +1,11 @@
 # expo-zebra-scanner
 
-Expo module for Zebra DataWedge on Android, with hook-first APIs.
+Expo module for Zebra DataWedge with a hook-first API.
 
 ## Platform support
 
--   Android: fully supported.
--   iOS: API surface exists for compatibility, behavior is no-op.
+- Android: supported
+- iOS: API-compatible no-op
 
 ## Installation
 
@@ -17,253 +17,108 @@ npm install expo-zebra-scanner
 yarn add expo-zebra-scanner
 ```
 
-## New API (hooks only)
+## Quick start
 
-The previous function-based API was removed from public exports. Use hooks:
+1. Create/configure your DataWedge profile.
+2. Subscribe to scans with `useZebraScanner`.
 
--   `useZebraScanner`
--   `useZebraCustomScanner` (alias: `useCustomZebraScanner`)
--   `useZebraCreateProfile`
--   `useZebraCoreFunctions`
+```tsx
+import { useEffect, useState } from "react";
+import { Text, View } from "react-native";
+import { useZebraCreateProfile, useZebraScanner } from "expo-zebra-scanner";
 
----
+export function ScanScreen() {
+  const [lastScan, setLastScan] = useState("");
+  const createProfile = useZebraCreateProfile();
 
-## useZebraScanner
+  useEffect(() => {
+    createProfile({
+      PROFILE_NAME: "ExpoDatawedgeExample",
+      PACKAGE_NAME: "expo.modules.zebrascanner.example",
+    });
+  }, [createProfile]);
 
-Barcode-oriented hook.
+  useZebraScanner({
+    onBarcodeScanned: (event) => {
+      setLastScan(`${event.scanLabelType}: ${event.scanData}`);
+    },
+  });
+
+  return (
+    <View>
+      <Text>Last scan: {lastScan || "none"}</Text>
+    </View>
+  );
+}
+```
+
+## API
+
+### `useZebraScanner(options)`
 
 ```ts
 type UseZebraScannerOptions = {
-    onBarcodeScanned: (event: BarcodeEvent) => void;
-    enabled?: boolean;
-    customAction?: string;
+  onBarcodeScanned: (event: BarcodeEvent) => void;
+  enabled?: boolean;
+  customAction?: string;
 };
 ```
 
-Behavior:
+Use this for standard barcode scans.
 
--   If `customAction` is omitted, listens on the default action: `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
--   `customAction` is normalized with `trim()`. Empty/whitespace values fall back to the default action.
--   If `customAction` is provided, listens on that action and maps `com.symbol.datawedge.data_string` / `com.symbol.datawedge.label_type` extras to `BarcodeEvent`.
--   **Exclusive dispatch (LIFO)**: when multiple instances listen to the same action, only the last mounted one receives scans. When it unmounts, the previous one resumes automatically. Use `enabled` to yield control explicitly.
--   To create a DataWedge profile, call `useZebraCreateProfile` separately before using this hook.
-
-
-```tsx
-import { useZebraScanner } from "expo-zebra-scanner";
-import { useState } from "react";
-import { Text, View } from "react-native";
-
-export function BarcodeListener() {
-    const [lastScan, setLastScan] = useState("");
-
-    useZebraScanner({
-        enabled: true,
-        onBarcodeScanned: (event) => {
-            setLastScan(`${event.scanLabelType}: ${event.scanData}`);
-        },
-    });
-
-    return (
-        <View>
-            <Text>Last scan: {lastScan || "none"}</Text>
-        </View>
-    );
-}
-```
-
----
-
-## useZebraCustomScanner
-
-Raw intent-oriented hook (full event payload).
+### `useZebraCustomScanner(options)`
 
 ```ts
 type UseZebraCustomScannerOptions<TCustomEvent = ZebraCustomIntentEvent> = {
-    onCustomScan: (event: TCustomEvent) => void;
-    enabled?: boolean;
-    customAction?: string;
+  onCustomScan: (event: TCustomEvent) => void;
+  enabled?: boolean;
+  customAction?: string;
 };
 ```
 
-Behavior:
+Use this when you need the full raw broadcast payload.
 
--   If `customAction` is omitted, default action is: `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
--   `customAction` is normalized with `trim()`. Empty/whitespace values fall back to the default action.
--   **Exclusive dispatch (LIFO)**: for a given action, only the last mounted subscriber receives events. Previous ones resume when the top one unmounts.
--   Different `customAction` values are fully isolated — multiple distinct actions run in parallel.
--   Hook alias also available: `useCustomZebraScanner`.
+### `useZebraCreateProfile()`
 
-
-```tsx
-import { useZebraCustomScanner } from "expo-zebra-scanner";
-import { useState } from "react";
-import { Text, View } from "react-native";
-
-export function CustomActionListener() {
-    const [lastAction, setLastAction] = useState("");
-
-    useZebraCustomScanner({
-        customAction: "com.symbol.datawedge.api.RESULT_ACTION",
-        onCustomScan: (event) => {
-            setLastAction(event.action);
-        },
-    });
-
-    return (
-        <View>
-            <Text>Last action: {lastAction || "none"}</Text>
-        </View>
-    );
-}
-```
-
----
-
-## useZebraCreateProfile
-
-Returns a function to create/configure a default DataWedge profile. Call this before using the scanner hooks.
-
-```ts
-const createProfile = useZebraCreateProfile();
-```
-
-`useZebraCreateProfile()` takes no arguments.
-Options are passed to `createProfile(...)`.
-
-Signature:
+Returns `createProfile(profile)`.
 
 ```ts
 type CreateProfileData = {
-    PROFILE_NAME: string;
-    PACKAGE_NAME: string;
-    PARAM_LIST?: Record<string, string>;
-    INTENT_ACTION?: string;
+  PROFILE_NAME: string;
+  PACKAGE_NAME: string;
+  PARAM_LIST?: Record<string, string>;
+  INTENT_ACTION?: string;
 };
 ```
 
-Payload options (`createProfile({...})`):
+### `useZebraCoreFunctions()`
 
--   `PROFILE_NAME` (required): DataWedge profile name.
--   `PACKAGE_NAME` (required): Android package to bind profile to.
--   `PARAM_LIST` (optional): BARCODE plugin decoder/settings overrides.
--   `INTENT_ACTION` (optional): override DataWedge intent action.
--   Runtime guard: empty `PROFILE_NAME` / `PACKAGE_NAME` are rejected (logged + no-op). Non-string `PARAM_LIST` values are ignored.
+Low-level imperative API:
 
+- `startScan()`
+- `stopScan()`
+- `startCustomScan(action?)`
+- `stopCustomScan(action?)`
+- `sendBroadcast(bundle)`
+- `sendActionCommand(extraName, extraData)`
+- `createProfile(profile)`
+- `getDataWedgeVersion()`
 
-```tsx
-import { useEffect } from "react";
-import { Text } from "react-native";
-import { useZebraCreateProfile } from "expo-zebra-scanner";
+## DataWedge reminder
 
-export function SetupDataWedgeProfile() {
-    const createProfile = useZebraCreateProfile();
+For standard scanner output in DataWedge profile intent settings:
 
-    useEffect(() => {
-        createProfile({
-            PROFILE_NAME: "ExpoDatawedgeExample",
-            PACKAGE_NAME: "expo.modules.zebrascanner.example",
-            PARAM_LIST: {
-                decoder_qrcode: "true",
-                decoder_code128: "true",
-            },
-        });
-    }, [createProfile]);
+- Delivery: `Broadcast`
+- Action: `com.symbol.datawedge.ACTION_BARCODE_SCANNED`
 
-    return <Text>Profile setup sent</Text>;
-}
-```
+If you use a custom action in the hook, use the same action in DataWedge profile config.
 
-Important:
+## Notes
 
--   A DataWedge profile intent output uses one `intent_action` at a time.
--   In most cases, do not set `INTENT_ACTION`. Keep the default action `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
--   Set `INTENT_ACTION` only if you intentionally listen to a custom action (for example `useZebraScanner({ customAction: "..." })`).
--   If you listen with `useZebraScanner({ customAction })`, set the same action in profile creation via `INTENT_ACTION` (or DataWedge UI / manual command).
+- Hooks are the public API.
+- If multiple listeners use the same action, the latest mounted listener receives events.
 
+## Reference
 
-```tsx
-import { useEffect } from "react";
-import { Text } from "react-native";
-import { useZebraCreateProfile } from "expo-zebra-scanner";
-
-export function SetupCustomActionProfile() {
-    const createProfile = useZebraCreateProfile();
-
-    useEffect(() => {
-        createProfile({
-            PROFILE_NAME: "ExpoDatawedgeExample",
-            PACKAGE_NAME: "expo.modules.zebrascanner.example",
-            INTENT_ACTION: "com.mycompany.MY_SCAN_ACTION",
-        });
-    }, [createProfile]);
-
-    return <Text>Custom profile setup sent</Text>;
-}
-```
-
----
-
-## useZebraCoreFunctions
-
-Low-level imperative API for advanced flows.
-
-Returned functions:
-
--   `startScan()`
--   `stopScan()`
--   `startCustomScan(action?)`
--   `stopCustomScan(action?)`
--   `sendBroadcast(bundle)`
--   `sendActionCommand(extraName, extraData)`
--   `createProfile(profile)`
--   `getDataWedgeVersion()`
-
-Runtime notes:
-
--   `startCustomScan(action?)`: action is normalized with `trim()`; empty falls back to default action.
--   `stopCustomScan(action?)`: non-empty action stops that specific action, otherwise stops all custom scans.
--   `sendBroadcast(bundle)`: `bundle.action` must be a non-empty string; `extras` must be `string | object`.
--   `sendActionCommand(extraName, extraData)`: empty `extraName` is rejected.
-
-
-```tsx
-import { useEffect } from "react";
-import { Text } from "react-native";
-import { useZebraCoreFunctions } from "expo-zebra-scanner";
-
-export function DataWedgeVersionCheck() {
-    const zebra = useZebraCoreFunctions();
-
-    useEffect(() => {
-        zebra.getDataWedgeVersion().then((version) => {
-            console.log("DataWedge version:", version);
-        });
-    }, [zebra]);
-
-    return <Text>Checking DataWedge version...</Text>;
-}
-```
-
----
-
-## DataWedge setup reminder
-
-In Zebra DataWedge profile intent output:
-
--   Delivery: Broadcast
--   Action: `com.symbol.datawedge.ACTION_BARCODE_SCANNED`
-
-Reference docs:
-
--   https://techdocs.zebra.com/datawedge/latest/guide/settings/
--   https://techdocs.zebra.com/datawedge/13-0/guide/api/setconfig/
-
-## Development checks
-
-```sh
-npm run lint
-npx tsc --noEmit -p tsconfig.json
-cd example && bun run lint
-cd example/android && ./gradlew :app:compileDebugKotlin
-```
+- https://techdocs.zebra.com/datawedge/latest/guide/settings/
+- https://techdocs.zebra.com/datawedge/13-0/guide/api/setconfig/
