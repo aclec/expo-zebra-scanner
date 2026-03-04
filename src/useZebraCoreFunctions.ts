@@ -1,6 +1,7 @@
 import ExpoZebraScannerModule from "./ExpoZebraScannerModule";
 import { DEFAULT_BARCODE_ACTION } from "./internal/constants";
 import { createIntentDatawedgeProfile, getDataWedgeVersion, sendBroadcast, sendActionCommand } from "./internal/profile";
+import { resolveAction } from "./internal/zebraManager";
 
 const zebraCoreFunctions = {
     startScan: (): void => {
@@ -10,11 +11,12 @@ const zebraCoreFunctions = {
         ExpoZebraScannerModule.stopScan();
     },
     startCustomScan: (action: string = DEFAULT_BARCODE_ACTION): void => {
-        ExpoZebraScannerModule.startCustomScan(action);
+        ExpoZebraScannerModule.startCustomScan(resolveAction(action));
     },
     stopCustomScan: (action?: string): void => {
-        if (action && action.trim().length > 0) {
-            ExpoZebraScannerModule.stopCustomScanForAction(action);
+        const normalizedAction = typeof action === "string" ? action.trim() : "";
+        if (normalizedAction.length > 0) {
+            ExpoZebraScannerModule.stopCustomScanForAction(normalizedAction);
             return;
         }
         ExpoZebraScannerModule.stopCustomScan();

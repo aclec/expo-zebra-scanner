@@ -43,6 +43,7 @@ type UseZebraScannerOptions = {
 Behavior:
 
 -   If `customAction` is omitted, listens on the default action: `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
+-   `customAction` is normalized with `trim()`. Empty/whitespace values fall back to the default action.
 -   If `customAction` is provided, listens on that action and maps `com.symbol.datawedge.data_string` / `com.symbol.datawedge.label_type` extras to `BarcodeEvent`.
 -   **Exclusive dispatch (LIFO)**: when multiple instances listen to the same action, only the last mounted one receives scans. When it unmounts, the previous one resumes automatically. Use `enabled` to yield control explicitly.
 -   To create a DataWedge profile, call `useZebraCreateProfile` separately before using this hook.
@@ -88,6 +89,7 @@ type UseZebraCustomScannerOptions<TCustomEvent = ZebraCustomIntentEvent> = {
 Behavior:
 
 -   If `customAction` is omitted, default action is: `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
+-   `customAction` is normalized with `trim()`. Empty/whitespace values fall back to the default action.
 -   **Exclusive dispatch (LIFO)**: for a given action, only the last mounted subscriber receives events. Previous ones resume when the top one unmounts.
 -   Different `customAction` values are fully isolated — multiple distinct actions run in parallel.
 -   Hook alias also available: `useCustomZebraScanner`.
@@ -146,6 +148,7 @@ Payload options (`createProfile({...})`):
 -   `PACKAGE_NAME` (required): Android package to bind profile to.
 -   `PARAM_LIST` (optional): BARCODE plugin decoder/settings overrides.
 -   `INTENT_ACTION` (optional): override DataWedge intent action.
+-   Runtime guard: empty `PROFILE_NAME` / `PACKAGE_NAME` are rejected (logged + no-op). Non-string `PARAM_LIST` values are ignored.
 
 
 ```tsx
@@ -215,6 +218,13 @@ Returned functions:
 -   `sendActionCommand(extraName, extraData)`
 -   `createProfile(profile)`
 -   `getDataWedgeVersion()`
+
+Runtime notes:
+
+-   `startCustomScan(action?)`: action is normalized with `trim()`; empty falls back to default action.
+-   `stopCustomScan(action?)`: non-empty action stops that specific action, otherwise stops all custom scans.
+-   `sendBroadcast(bundle)`: `bundle.action` must be a non-empty string; `extras` must be `string | object`.
+-   `sendActionCommand(extraName, extraData)`: empty `extraName` is rejected.
 
 
 ```tsx

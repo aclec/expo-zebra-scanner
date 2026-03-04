@@ -23,39 +23,51 @@ const customStacks = new Map<string, CustomEntry[]>();
 let barcodeNativeSub: EventSubscription | null = null;
 let customNativeSub: EventSubscription | null = null;
 
+function normalizeAction(action?: string): string {
+    return typeof action === "string" ? action.trim() : "";
+}
+
 function getEventAction(event: ZebraCustomIntentEvent): string {
-    return typeof event?.action === "string" && event.action.length > 0 ? event.action : "";
+    return normalizeAction(event?.action);
 }
 
 function ensureBarcodeNativeSub(): void {
     if (barcodeNativeSub) return;
-    barcodeNativeSub = ExpoZebraScannerModule.addListener("onBarcodeScanned", (event: BarcodeEvent) => {
-        const top = barcodeStack[barcodeStack.length - 1];
-        if (!top) return;
-        try {
-            top.handler(event);
-        } catch (error) {
-            console.error("[zebra] barcode handler threw an error", error);
-        }
-    });
+    try {
+        barcodeNativeSub = ExpoZebraScannerModule.addListener("onBarcodeScanned", (event: BarcodeEvent) => {
+            const top = barcodeStack[barcodeStack.length - 1];
+            if (!top) return;
+            try {
+                top.handler(event);
+            } catch (error) {
+                console.error("[zebra] barcode handler threw an error", error);
+            }
+        });
+    } catch (error) {
+        console.error("[zebra] failed to create barcode listener", error);
+    }
 }
 
 function ensureCustomNativeSub(): void {
     if (customNativeSub) return;
-    customNativeSub = ExpoZebraScannerModule.addListener("onCustomScan", (event: ZebraCustomIntentEvent) => {
-        const action = getEventAction(event);
-        if (!action) return;
+    try {
+        customNativeSub = ExpoZebraScannerModule.addListener("onCustomScan", (event: ZebraCustomIntentEvent) => {
+            const action = getEventAction(event);
+            if (!action) return;
 
-        const stack = customStacks.get(action);
-        if (!stack || stack.length === 0) return;
+            const stack = customStacks.get(action);
+            if (!stack || stack.length === 0) return;
 
-        const top = stack[stack.length - 1];
-        try {
-            top.handler(event);
-        } catch (error) {
-            console.error(`[zebra] custom handler threw an error for action "${action}"`, error);
-        }
-    });
+            const top = stack[stack.length - 1];
+            try {
+                top.handler(event);
+            } catch (error) {
+                console.error(`[zebra] custom handler threw an error for action "${action}"`, error);
+            }
+        });
+    } catch (error) {
+        console.error("[zebra] failed to create custom listener", error);
+    }
 }
 
 function cleanupBarcodeNativeSubIfUnused(): void {
@@ -65,19 +77,27 @@ function cleanupBarcodeNativeSubIfUnused(): void {
     } catch (error) {
         console.error("[zebra] failed to stop scan", error);
     }
-    barcodeNativeSub?.remove();
+    try {
+        barcodeNativeSub?.remove();
+    } catch (error) {
+        console.error("[zebra] failed to remove barcode listener", error);
+    }
     barcodeNativeSub = null;
 }
 
 function cleanupCustomNativeSubIfUnused(): void {
     if (customStacks.size > 0) return;
-    customNativeSub?.remove();
+    try {
+        customNativeSub?.remove();
+    } catch (error) {
+        console.error("[zebra] failed to remove custom listener", error);
+    }
     customNativeSub = null;
 }
 
 export function resolveAction(customAction?: string): string {
-    const action = customAction?.trim();
-    return action && action.length > 0 ? action : DEFAULT_BARCODE_ACTION;
+    const action = normalizeAction(customAction);
+    return action.length > 0 ? action : DEFAULT_BARCODE_ACTION;
 }
 
 export function subscribeBarcode(handler: BarcodeHandler): () => void {
@@ -104,43 +124,44 @@ export function subscribeBarcode(handler: BarcodeHandler): () => void {
 }
 
 export function subscribeCustom<T = ZebraCustomIntentEvent>(action: string, handler: CustomHandler<T>): () => void {
-    if (!action || action.trim().length === 0) {
+    const resolvedAction = normalizeAction(action);
+    if (!resolvedAction) {
         console.error("[zebra] subscribeCustom called with empty action — subscription ignored");
         return () => {};
     }
     const id = nextId++;
     ensureCustomNativeSub();
 
-    let stack = customStacks.get(action);
+    let stack = customStacks.get(resolvedAction);
     if (!stack) {
         stack = [];
-        customStacks.set(action, stack);
+        customStacks.set(resolvedAction, stack);
     }
 
     if (stack.length === 0) {
         try {
-            ExpoZebraScannerModule.startCustomScan(action);
+            ExpoZebraScannerModule.startCustomScan(resolvedAction);
         } catch (error) {
-            console.error("[zebra] failed to start custom scan for action", action, error);
+            console.error("[zebra] failed to start custom scan for action", resolvedAction, error);
         }
     }
     if (__DEV__ && stack.length > 0) {
-        console.warn(`[zebra] ${stack.length + 1} listeners are stacked for action "${action}" — only the latest subscriber will receive scans. Previous subscribers resume when the top one unsubscribes.`);
+        console.warn(`[zebra] ${stack.length + 1} listeners are stacked for action "${resolvedAction}" — only the latest subscriber will receive scans. Previous subscribers resume when the top one unsubscribes.`);
     }
     stack.push({ id, handler: handler as CustomHandler });
 
     return () => {
-        const currentStack = customStacks.get(action);
+        const currentStack = customStacks.get(resolvedAction);
         if (!currentStack) return;
         const index = currentStack.findIndex((e) => e.id === id);
         if (index === -1) return;
         currentStack.splice(index, 1);
         if (currentStack.length === 0) {
-            customStacks.delete(action);
+            customStacks.delete(resolvedAction);
             try {
-                ExpoZebraScannerModule.stopCustomScanForAction(action);
+                ExpoZebraScannerModule.stopCustomScanForAction(resolvedAction);
             } catch (error) {
-                console.error("[zebra] failed to stop custom scan for action", action, error);
+                console.error("[zebra] failed to stop custom scan for action", resolvedAction, error);
             }
         }
         cleanupCustomNativeSubIfUnused();

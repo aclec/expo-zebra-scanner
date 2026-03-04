@@ -4,13 +4,19 @@ import { BarcodeEvent } from "./ExpoZebraScannerEvent";
 import { resolveAction, subscribeBarcodeByAction } from "./internal/zebraManager";
 
 type BarcodeScannedHandler = (event: BarcodeEvent) => void;
+const NOOP_BARCODE_HANDLER: BarcodeScannedHandler = () => {};
+
 export type UseZebraScannerOptions = {
     onBarcodeScanned: BarcodeScannedHandler;
     enabled?: boolean;
     customAction?: string;
 };
 
-export function useZebraScanner({ onBarcodeScanned, enabled = true, customAction }: UseZebraScannerOptions): void {
+export function useZebraScanner(options: UseZebraScannerOptions): void {
+    const onBarcodeScanned = typeof options?.onBarcodeScanned === "function" ? options.onBarcodeScanned : NOOP_BARCODE_HANDLER;
+    const enabled = options?.enabled ?? true;
+    const customAction = options?.customAction;
+
     const handlerRef = useRef(onBarcodeScanned);
     handlerRef.current = onBarcodeScanned;
 

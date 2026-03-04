@@ -13,7 +13,7 @@
 
 -   `src/index.ts`: public API exports (hooks + types only).
 -   `src/internal/constants.ts`: shared string constants (`DEFAULT_BARCODE_ACTION`, `DATAWEDGE_API_ACTION`).
--   `src/internal/profile.ts`: profile creation and low-level broadcast helpers (`sendBroadcast`, `sendActionCommand`, `createIntentDatawedgeProfile`, `getDataWedgeVersion`).
+-   `src/internal/profile.ts`: profile creation and low-level broadcast helpers (`sendBroadcast`, `sendActionCommand`, `createIntentDatawedgeProfile`, `getDataWedgeVersion`) with runtime payload validation.
 -   `src/internal/zebraManager.ts`: singleton subscription manager with LIFO exclusive dispatch per action.
 -   `src/useZebraScanner.ts`: barcode-focused hook.
 -   `src/useZebraCustomScanner.ts`: raw custom-intent hook.
@@ -66,8 +66,10 @@
 -   `startScan()` / `startCustomScan(action)` called only when the stack for that action goes from 0 → 1.
 -   `stopScan()` / `stopCustomScanForAction(action)` called only when the stack becomes empty.
 -   Default action fallback remains `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
+-   Actions are normalized with `trim()` before routing/start/stop to avoid whitespace variants creating different stacks.
 -   iOS keeps API shape but returns no-op / neutral values.
 -   Profile creation is decoupled from scanner hooks: call `useZebraCreateProfile` explicitly before subscribing.
+-   Invalid public inputs fail closed (log + no-op) instead of throwing at runtime.
 
 ## Known design constraints
 
@@ -77,6 +79,11 @@
 -   **DataWedge profile intent output has one action at a time**: a single profile cannot broadcast scanner output to two different `intent_action` values simultaneously.
 -   **Profile creation is explicit**: scanner hooks do not create DataWedge profiles. Call `useZebraCreateProfile` (or `useZebraCoreFunctions().createProfile`) before using the scanner hooks if a profile needs to be configured programmatically.
 -   **Native calls are guarded**: `startScan`, `stopScan`, `startCustomScan`, `stopCustomScanForAction` are wrapped in `try/catch` — a native failure is logged but does not corrupt JS subscription state.
+-   **Runtime validation is defensive**:
+    -   `sendBroadcast` rejects empty actions and invalid extras payloads (`string | object` only).
+    -   `sendActionCommand` rejects empty `extraName`.
+    -   `createIntentDatawedgeProfile` rejects empty `PROFILE_NAME` / `PACKAGE_NAME`; only string values from `PARAM_LIST` are merged.
+    -   Hook options are guarded against malformed JS calls (invalid callbacks become no-op handlers).
 
 ## Native Android rules
 
