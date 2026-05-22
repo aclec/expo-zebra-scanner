@@ -9,7 +9,7 @@ Guidance for Claude Code when working in this repository.
 - Android: full native support.
 - iOS: compatibility stubs (no-op behavior).
 
-Published as an npm package (`main: build/index.js`, `types: build/index.d.ts`); current version `55.2.0`.
+Published as an npm package (`main: build/index.js`, `types: build/index.d.ts`); current version `56.0.0`.
 
 ## Architecture
 
@@ -118,3 +118,9 @@ Path: `android/src/main/java/expo/modules/zebrascanner/`
 - Do not re-export legacy function API from `src/index.ts`.
 - Additive hook improvements are allowed.
 - Any behavior change in event payload/action defaults requires README updates.
+
+## Conventions
+
+- This is an open-source project: all committed content (code, comments, `CHANGELOG.md`, `README.md`, commit messages) is written in English.
+- `CHANGELOG.md` lists only headline, user-facing changes per release — not every internal edit. SDK-bump releases stay terse (see the `## 5.0.0` / `## 6.0.0` entries for tone). Internal refactors, lint/type-only fixes, example-app plumbing, and version-number bumps do not belong in the changelog.
+- An Expo SDK upgrade touches more than `package.json`: also check `ios/*.podspec` (`platforms`, `swift_version`), `android/build.gradle` (`version`, `versionCode`), and `expo-module.config.json` (current SDKs use the `apple` platform key, not the legacy `ios`).

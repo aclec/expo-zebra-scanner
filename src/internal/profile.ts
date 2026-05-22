@@ -1,6 +1,7 @@
-import { BroadcastEvent, BroadcastExtras } from "../ExpoZebraBroadcastEvent";
+import type { BroadcastEvent, BroadcastExtras } from "../ExpoZebraBroadcastEvent";
 import ExpoZebraScannerModule from "../ExpoZebraScannerModule";
-import { CreateProfileData, DEFAULT_BARCODES_CONFIG, DEFAULT_INTENT_CONFIG, DEFAULT_KEYSTROKE_CONFIG } from "../ProfileConstants";
+import type { CreateProfileData } from "../ProfileConstants";
+import { DEFAULT_BARCODES_CONFIG, DEFAULT_INTENT_CONFIG, DEFAULT_KEYSTROKE_CONFIG } from "../ProfileConstants";
 import { DATAWEDGE_API_ACTION } from "./constants";
 
 function isRecord(value: unknown): value is Record<string, unknown> {

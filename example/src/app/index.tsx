@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { View, Text, FlatList, StyleSheet, Pressable, TextInput } from "react-native";
 import { useZebraCoreFunctions, useZebraCreateProfile, useZebraCustomScanner, useZebraScanner } from "expo-zebra-scanner";
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused } from "expo-router/react-navigation";
 import { SettingsContext } from "../library/context/SettingsContext";
 import { CUSTOM_TESTER_PROFILE_NAME } from "../library/constants/datawedgeStructures";
 

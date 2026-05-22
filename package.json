@@ -1,6 +1,6 @@
 {
     "name": "expo-zebra-scanner",
-    "version": "55.2.0",
+    "version": "56.0.0",
     "description": "Module to use Zebra Scanner with React Native Expo",
     "main": "build/index.js",
     "types": "build/index.d.ts",
@@ -32,10 +32,9 @@
     "homepage": "https://github.com/aclec/expo-zebra-scanner#readme",
     "devDependencies": {
         "@types/react": "^19.2.14",
-        "@types/react-native": "^0.73.0",
         "eslint": "^9",
-        "expo-module-scripts": "^55.0.2",
-        "expo-modules-core": "^55.0.13",
+        "expo-module-scripts": "^56.0.2",
+        "expo-modules-core": "^56.0.12",
         "prettier": "^3.3.3"
     },
     "peerDependencies": {
