@@ -17,7 +17,9 @@ export function useZebraCustomScanner<TCustomEvent = ZebraCustomIntentEvent>(opt
     const customAction = options?.customAction;
 
     const handlerRef = useRef(onCustomScan);
-    handlerRef.current = onCustomScan;
+    useEffect(() => {
+        handlerRef.current = onCustomScan;
+    });
 
     const resolvedAction = useMemo(() => resolveAction(customAction), [customAction]);
 

@@ -1,6 +1,6 @@
 import { requireNativeModule } from "expo-modules-core";
 
-import { BroadcastEvent } from "./ExpoZebraBroadcastEvent";
+import type { BroadcastEvent } from "./ExpoZebraBroadcastEvent";
 
 // It loads the native module object from the JSI or falls back to
 // the bridge module (from NativeModulesProxy) if the remote debugger is on.

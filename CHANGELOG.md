@@ -1,5 +1,11 @@
 # expo-zebra-scanner
 
+## 56.0.0
+
+- Update to Expo SDK 56
+- Update example app to Expo SDK 56 (React Native 0.83 → 0.85)
+- iOS minimum deployment target raised to 16.4 (Expo SDK 56 baseline)
+
 ## 55.2.0
 
 Merged release covering previous 55.x migration work + latest stability hardening.

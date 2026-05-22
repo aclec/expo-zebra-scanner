@@ -1,6 +1,6 @@
-import { EventSubscription } from "expo-modules-core";
+import type { EventSubscription } from "expo-modules-core";
 
-import { BarcodeEvent } from "../ExpoZebraScannerEvent";
+import type { BarcodeEvent } from "../ExpoZebraScannerEvent";
 import ExpoZebraScannerModule from "../ExpoZebraScannerModule";
 import { DEFAULT_BARCODE_ACTION } from "./constants";
 
@@ -59,6 +59,7 @@ function ensureCustomNativeSub(): void {
             if (!stack || stack.length === 0) return;
 
             const top = stack[stack.length - 1];
+            if (!top) return;
             try {
                 top.handler(event);
             } catch (error) {
