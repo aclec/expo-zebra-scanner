@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { View, Text, FlatList, StyleSheet, Pressable, TextInput } from "react-native";
+import { View, Text, FlatList, StyleSheet, Pressable, TextInput, type TextInputInstance } from "react-native";
 import { useZebraCoreFunctions, useZebraCreateProfile, useZebraCustomScanner, useZebraScanner } from "expo-zebra-scanner";
 import { useIsFocused } from "expo-router/react-navigation";
 import { SettingsContext } from "../library/context/SettingsContext";
@@ -38,7 +38,7 @@ export default function HomeScreen() {
     const [inputData, setInputData] = useState<string>("");
     const [customActionInput, setCustomActionInput] = useState<string>("");
     const [customActions, setCustomActions] = useState<string[]>([DEFAULT_TEST_ACTION]);
-    const ref = useRef<TextInput>(null);
+    const ref = useRef<TextInputInstance>(null);
     const { isIntentEnabled, isCustomEventEnabled, isCustomActionTesterEnabled } = useContext(SettingsContext);
     const previousCustomTesterEnabledRef = useRef<boolean>(isCustomActionTesterEnabled);
     const createProfile = useZebraCreateProfile();

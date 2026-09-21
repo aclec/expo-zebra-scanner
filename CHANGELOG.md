@@ -1,5 +1,10 @@
 # expo-zebra-scanner
 
+## 58.0.0
+
+- Update to Expo SDK 58
+- Update example app to Expo SDK 58 (React Native 0.85 → 0.88)
+
 ## 56.0.0
 
 - Update to Expo SDK 56

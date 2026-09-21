@@ -9,7 +9,7 @@ Guidance for Claude Code when working in this repository.
 - Android: full native support.
 - iOS: compatibility stubs (no-op behavior).
 
-Published as an npm package (`main: build/index.js`, `types: build/index.d.ts`); current version `56.0.0`.
+Published as an npm package (`main: build/index.js`, `types: build/index.d.ts`); current version `58.0.0`.
 
 ## Architecture
 
