@@ -53,7 +53,7 @@ class ExpoZebraScannerModule : Module() {
     AsyncFunction("getDataWedgeVersion") { promise: Promise ->
       val ctx = appContext.reactContext
       if (ctx == null) {
-        promise.resolve(intArrayOf(0, 0, 0))
+        promise.resolve(fallbackVersion())
         return@AsyncFunction
       }
 

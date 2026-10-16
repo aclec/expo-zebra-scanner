@@ -5,7 +5,7 @@ Expo module for Zebra DataWedge with a hook-first API.
 ## Platform support
 
 - Android: supported
-- iOS: API-compatible no-op
+- iOS / web: not supported. Every hook and function is a no-op (`getDataWedgeVersion()` resolves to `[0, 0, 0]`), and a one-time warning is logged in development. To silence it, pass `enabled: Platform.OS === "android"` to the scanner hooks and guard imperative calls (`createProfile`, `sendBroadcast`, …) with the same check.
 
 ## Installation
 
@@ -117,6 +117,8 @@ If you use a custom action in the hook, use the same action in DataWedge profile
 
 - Hooks are the public API.
 - If multiple listeners use the same action, the latest mounted listener receives events.
+- `sendBroadcast` `extras` must be an object of key/value pairs (one intent extra per key); anything else is rejected with an error log.
+- In `useZebraCustomScanner` events, top-level boolean and int extras arrive as strings (DataWedge sends most values as strings); values inside nested bundles and arrays keep their type. Array extras arrive as JS arrays. Byte arrays arrive as arrays of unsigned byte values (0–255): `com.symbol.datawedge.decode_data` is an array of those, one per decoded segment.
 
 ## Reference
 

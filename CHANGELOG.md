@@ -4,6 +4,11 @@
 
 - Update to Expo SDK 58
 - Update example app to Expo SDK 58 (React Native 0.85 → 0.88)
+- iOS and web log a one-time development warning that the module is Android-only; importing it on web no longer crashes
+- `sendBroadcast`: arrays of numbers are now sent as `int[]` (e.g. DataWedge `NOTIFY`) instead of a string
+- `useZebraCustomScanner`: array extras now arrive as JS arrays instead of unreadable strings; byte arrays such as `com.symbol.datawedge.decode_data` arrive as arrays of unsigned byte values (0–255)
+- **Breaking:** `sendBroadcast` `extras` must be an object of key/value pairs; a string was silently dropped and is now rejected with an error log
+- `getDataWedgeVersion()` no longer resolves to `[0, 0, 0]` when another component's DataWedge command result arrives during the lookup
 
 ## 56.0.0
 

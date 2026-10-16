@@ -36,6 +36,9 @@
         }
       ],
       "expo-font"
-    ]
+    ],
+    "experiments": {
+      "autolinkingModuleResolution": true
+    }
   }
 }

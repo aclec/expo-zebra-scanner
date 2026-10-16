@@ -7,7 +7,7 @@ Guidance for Claude Code when working in this repository.
 `expo-zebra-scanner` is an Expo module exposing hook-based APIs for Zebra DataWedge.
 
 - Android: full native support.
-- iOS: compatibility stubs (no-op behavior).
+- iOS / web: unsupported; JS swaps in a stub that no-ops and warns once in dev.
 
 Published as an npm package (`main: build/index.js`, `types: build/index.d.ts`); current version `58.0.0`.
 
@@ -39,7 +39,7 @@ Path: `android/src/main/java/expo/modules/zebrascanner/`
 
 ### iOS (Swift)
 
-- `ExpoZebraScannerModule.swift`: no-op stubs for all functions; keeps API shape for cross-platform compat.
+- `ExpoZebraScannerModule.swift`: no-op placeholder with the same API shape. Not called from JS: on every non-Android platform `src/ExpoZebraScannerModule.ts` exports `src/internal/unsupportedPlatformModule.ts` instead.
 
 ## Public API contract (current)
 
@@ -74,10 +74,11 @@ Path: `android/src/main/java/expo/modules/zebrascanner/`
 - Default action fallback remains `com.symbol.datawedge.ACTION_BARCODE_SCANNED`.
 - Actions are normalized with `trim()` before routing/start/stop to avoid whitespace variants creating different stacks.
 - Barcode events emitted from native always include string values for `scanData` and `scanLabelType` (empty string fallback).
-- iOS keeps API shape but returns no-op / neutral values.
+- Non-Android platforms (iOS, web) keep the API shape, return no-op / neutral values, and log a single `__DEV__` warning on first use. On Android a missing native module (e.g. Expo Go) still throws at import.
 - Profile creation is decoupled from scanner hooks: call `useZebraCreateProfile` explicitly before subscribing.
 - Invalid public inputs fail closed (log + no-op) instead of throwing at runtime.
-- DataWedge version lookup resolves once and falls back to `[0, 0, 0]` on timeout/error.
+- DataWedge version lookup resolves once and falls back to `[0, 0, 0]` on timeout/error; a `RESULT_INFO` reply only counts as an error when its `COMMAND_IDENTIFIER` matches the lookup's.
+- Custom-intent extras reach JS as arrays, never `toString()` output; byte arrays become unsigned (0–255) number arrays.
 
 ## Known design constraints
 
@@ -89,7 +90,7 @@ Path: `android/src/main/java/expo/modules/zebrascanner/`
 - **Profile creation is explicit**: scanner hooks do not create DataWedge profiles. Call `useZebraCreateProfile` (or `useZebraCoreFunctions().createProfile`) before using the scanner hooks if a profile needs to be configured programmatically.
 - **Native calls are guarded**: `startScan`, `stopScan`, `startCustomScan`, `stopCustomScanForAction` are wrapped in `try/catch` — a native failure is logged but does not corrupt JS subscription state.
 - **Runtime validation is defensive**:
-    - `sendBroadcast` rejects empty actions and invalid extras payloads (`string | object` only).
+    - `sendBroadcast` rejects empty actions and invalid extras payloads (plain object only).
     - `sendActionCommand` rejects empty `extraName`.
     - `createIntentDatawedgeProfile` rejects empty `PROFILE_NAME` / `PACKAGE_NAME`; only string values from `PARAM_LIST` are merged.
     - Hook options are guarded against malformed JS calls (invalid callbacks become no-op handlers).
@@ -101,15 +102,17 @@ Path: `android/src/main/java/expo/modules/zebrascanner/`
 - Keep support for `stopCustomScanForAction(action)` for per-action cleanup.
 - Avoid crashes on rapid mount/unmount or Fast Refresh (safeUnregister catches exceptions).
 - Ignore blank `sendBroadcast` actions and catch native broadcast errors to avoid crashing JS callers.
-- `BroadcastIntentBuilder` must handle Expo JSI types: `Map<*, *>` → `Bundle`, `List<Map>` → `Parcelable[]`, `List<String>` → `StringArray`. Never rely on `.toString()` for serialization.
+- `BroadcastIntentBuilder` must handle Expo JSI types: `Map<*, *>` → `Bundle`, `List<Map>` → `Parcelable[]`, `List<String>` → `StringArray`, `List<Number>` → `IntArray` (`DoubleArray` if any value is non-integral). Never rely on `.toString()` for serialization.
 - `DataWedgeVersionResolver`: resolve the promise once, clear timeout callback, and unregister temporary receiver on all completion paths.
 - `DATAWEDGE_API_ACTION` is defined in both `src/internal/constants.ts` (TS) and `ZebraConstants.kt` (Kotlin) — keep them in sync if the value ever changes.
 
 ## Lint / build checks
 
-- Root lint: `npm run lint` (`expo-module lint`)
+Tooling follows the SDK 58 `create-expo-module` template: no `expo-module-scripts`; build/clean/prepare/open scripts live in `internal/module_scripts/`, `tsconfig.json` is standalone, and `android/build.gradle` uses the `expo-module-gradle-plugin` plugin. JS imports native-module APIs from `expo`, not `expo-modules-core`.
+
+- Root lint: `npm run lint` (`eslint src/`, `eslint-config-universe`)
 - TS check: `npx tsc --noEmit -p tsconfig.json`
-- Build: `npm run build` (`expo-module build`)
+- Build: `npm run build` (`internal/module_scripts/build.js` → `tsc`; set `CI=1` to skip watch mode)
 - Example lint: `cd example && bun run lint`
 - Android Kotlin compile smoke test: `cd example/android && ./gradlew :app:compileDebugKotlin`
 

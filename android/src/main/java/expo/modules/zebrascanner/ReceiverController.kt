@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.os.Bundle
 import androidx.core.content.ContextCompat
 
+// Mutated from the JS thread (Function calls) and from module teardown (OnDestroy).
 internal class ReceiverController(
   private val emitter: (name: String, body: Bundle?) -> Unit
 ) {
@@ -27,6 +28,7 @@ internal class ReceiverController(
     }
   }
 
+  @Synchronized
   fun startBarcodeScan(context: Context) {
     if (barcodeReceiver != null) return
 
@@ -49,11 +51,13 @@ internal class ReceiverController(
     }
   }
 
+  @Synchronized
   fun stopBarcodeScan(context: Context) {
     safeUnregister(context, barcodeReceiver)
     barcodeReceiver = null
   }
 
+  @Synchronized
   fun startCustomScan(context: Context, action: String) {
     val normalizedAction = normalizeAction(action) ?: return
     if (customReceivers.containsKey(normalizedAction)) return
@@ -77,17 +81,20 @@ internal class ReceiverController(
     }
   }
 
+  @Synchronized
   fun stopAllCustomScans(context: Context) {
     customReceivers.values.forEach { receiver -> safeUnregister(context, receiver) }
     customReceivers.clear()
   }
 
+  @Synchronized
   fun stopCustomScanForAction(context: Context, action: String) {
     val normalizedAction = normalizeAction(action) ?: return
     val receiver = customReceivers.remove(normalizedAction) ?: return
     safeUnregister(context, receiver)
   }
 
+  @Synchronized
   fun cleanup(context: Context) {
     stopBarcodeScan(context)
     stopAllCustomScans(context)

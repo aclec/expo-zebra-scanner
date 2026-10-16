@@ -1,11 +1,21 @@
-# Exclude all top-level hidden directories by convention
-/.*/
+# Exclude all top-level hidden files and directories by convention
+/.*
+
+# Exclude TypeScript project configuration and incremental build caches
+**/tsconfig.json
+**/*.tsbuildinfo
 
 __mocks__
 __tests__
 
+/CLAUDE.md
+/eslint.config.cjs
+/internal/module_scripts/
+/dataWedge/
+/tasks/
 /babel.config.js
 /android/src/androidTest/
 /android/src/test/
 /android/build/
 /example/
+/bun.lock
