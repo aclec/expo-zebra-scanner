@@ -7,24 +7,11 @@ import android.os.Parcelable
 internal fun buildBroadcastIntent(payload: Map<String, Any?>): Intent {
   val intent = Intent()
   (payload["action"] as? String)?.let { intent.action = it }
-
-  val extrasMap = payload["extras"] as? Map<*, *>
-  extrasMap?.forEach { (rawKey, value) ->
-    val key = rawKey as? String ?: return@forEach
-    when (value) {
-      is Boolean -> intent.putExtra(key, value.toString())
-      is Int -> intent.putExtra(key, value.toString())
-      is Long -> intent.putExtra(key, value)
-      is Double -> intent.putExtra(key, value)
-      is Map<*, *> -> intent.putExtra(key, mapToBundle(value))
-      is List<*> -> putListAsIntentExtra(intent, key, value)
-      else -> intent.putExtra(key, value?.toString())
-    }
-  }
-
+  (payload["extras"] as? Map<*, *>)?.let { intent.putExtras(mapToBundle(it)) }
   return intent
 }
 
+// Booleans and ints are sent as strings: DataWedge reads most API values with getStringExtra.
 private fun mapToBundle(map: Map<*, *>): Bundle {
   val bundle = Bundle()
   for ((rawKey, value) in map) {
@@ -38,32 +25,31 @@ private fun mapToBundle(map: Map<*, *>): Bundle {
       is Double -> bundle.putDouble(key, value)
       is Float -> bundle.putDouble(key, value.toDouble())
       is Map<*, *> -> bundle.putBundle(key, mapToBundle(value))
-      is List<*> -> putListAsBundleExtra(bundle, key, value)
+      is List<*> -> putList(bundle, key, value)
       else -> bundle.putString(key, value.toString())
     }
   }
   return bundle
 }
 
-private fun putListAsIntentExtra(intent: Intent, key: String, list: List<*>) {
-  if (list.isEmpty()) return
-  when (list.firstOrNull { it != null }) {
-    is String -> intent.putExtra(key, list.map { it?.toString() ?: "" }.toTypedArray())
-    is Map<*, *> -> {
-      val bundles = list.filterIsInstance<Map<*, *>>().map { mapToBundle(it) }.toTypedArray<Parcelable>()
-      intent.putExtra(key, bundles)
-    }
-    else -> intent.putExtra(key, list.toString())
-  }
-}
-
-private fun putListAsBundleExtra(bundle: Bundle, key: String, list: List<*>) {
-  if (list.isEmpty()) return
-  when (list.firstOrNull { it != null }) {
-    is String -> bundle.putStringArray(key, list.map { it?.toString() ?: "" }.toTypedArray())
-    is Map<*, *> -> {
+private fun putList(bundle: Bundle, key: String, list: List<*>) {
+  val first = list.firstOrNull { it != null }
+  when {
+    first == null -> {}
+    first is String -> bundle.putStringArray(key, list.map { it?.toString() ?: "" }.toTypedArray())
+    first is Map<*, *> -> {
       val bundles = list.filterIsInstance<Map<*, *>>().map { mapToBundle(it) }.toTypedArray<Parcelable>()
       bundle.putParcelableArray(key, bundles)
+    }
+    // JS numbers arrive as Double; DataWedge expects int[] (e.g. NOTIFY's NOTIFICATION).
+    // Only all-number lists are converted, so element positions are never shifted.
+    list.all { it is Number } -> {
+      val numbers = list.map { (it as Number).toDouble() }
+      if (numbers.all { it % 1.0 == 0.0 && it >= Int.MIN_VALUE && it <= Int.MAX_VALUE }) {
+        bundle.putIntArray(key, numbers.map { it.toInt() }.toIntArray())
+      } else {
+        bundle.putDoubleArray(key, numbers.toDoubleArray())
+      }
     }
     else -> bundle.putString(key, list.toString())
   }

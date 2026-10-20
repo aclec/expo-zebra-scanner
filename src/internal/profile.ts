@@ -31,9 +31,10 @@ export function sendBroadcast(bundle: BroadcastEvent): void {
         return;
     }
 
+    // Intent extras are key/value pairs: a bare string has no key and would be dropped natively.
     const extras = bundle?.extras;
-    if (typeof extras !== "string" && !isRecord(extras)) {
-        console.error("[zebra] sendBroadcast called with invalid extras; expected string or object");
+    if (!isRecord(extras)) {
+        console.error("[zebra] sendBroadcast called with invalid extras; expected an object of key/value pairs");
         return;
     }
 

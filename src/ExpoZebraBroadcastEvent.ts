@@ -23,5 +23,5 @@ export type BroadcastExtras = {
 
 export type BroadcastEvent = {
     action: string;
-    extras: BroadcastExtras | string;
+    extras: BroadcastExtras;
 };

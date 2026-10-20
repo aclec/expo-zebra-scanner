@@ -1,9 +1,8 @@
-import { requireNativeModule } from "expo-modules-core";
+import { Platform, requireNativeModule } from "expo";
 
 import type { BroadcastEvent } from "./ExpoZebraBroadcastEvent";
+import { unsupportedPlatformModule } from "./internal/unsupportedPlatformModule";
 
-// It loads the native module object from the JSI or falls back to
-// the bridge module (from NativeModulesProxy) if the remote debugger is on.
 export type NativeExpoZebraScannerModule = {
     addListener: (
         eventName: string,
@@ -20,4 +19,9 @@ export type NativeExpoZebraScannerModule = {
     getDataWedgeVersion: () => Promise<number[]>;
 };
 
-export default requireNativeModule<NativeExpoZebraScannerModule>("ExpoZebraScanner");
+// DataWedge only exists on Android. Other platforms get a JS stub that warns once (in dev)
+// and no-ops, so cross-platform apps keep working. On Android a missing native module
+// (e.g. Expo Go) still throws, because silently degrading there would hide a broken build.
+export default Platform.OS === "android"
+    ? requireNativeModule<NativeExpoZebraScannerModule>("ExpoZebraScanner")
+    : unsupportedPlatformModule;

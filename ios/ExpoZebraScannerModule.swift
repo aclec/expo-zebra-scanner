@@ -1,42 +1,22 @@
 import ExpoModulesCore
 
+// Zebra DataWedge is Android-only. On iOS the JS layer never calls this module: it swaps in a
+// stub that warns once in dev and no-ops (src/internal/unsupportedPlatformModule.ts). This
+// placeholder keeps the same API shape so the native module registry stays consistent.
 public class ExpoZebraScannerModule: Module {
-  // Each module class must implement the definition function. The definition consists of components
-  // that describes the module's functionality and behavior.
-  // See https://docs.expo.dev/modules/module-api for more details about available components.
   public func definition() -> ModuleDefinition {
-    // Sets the name of the module that JavaScript code will use to refer to the module. Takes a string as an argument.
-    // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
-    // The module will be accessible from `requireNativeModule('ExpoZebraScanner')` in JavaScript.
     Name("ExpoZebraScanner")
     Events("onBarcodeScanned", "onCustomScan")
 
-    Function("startScan") {
-      // DataWedge is Android-only.
-    }
-    Function("stopScan") {
-      // DataWedge is Android-only.
-    }
-
-    Function("sendBroadcast") { (_: [String: Any]) in
-      // DataWedge is Android-only.
-    }
-
-    Function("startCustomScan") { (_: String) in
-      // DataWedge is Android-only.
-    }
-
-    Function("stopCustomScan") {
-      // DataWedge is Android-only.
-    }
-
-    Function("stopCustomScanForAction") { (_: String) in
-      // DataWedge is Android-only.
-    }
+    Function("startScan") {}
+    Function("stopScan") {}
+    Function("sendBroadcast") { (_: [String: Any]) in }
+    Function("startCustomScan") { (_: String) in }
+    Function("stopCustomScan") {}
+    Function("stopCustomScanForAction") { (_: String) in }
 
     AsyncFunction("getDataWedgeVersion") { () -> [Int] in
       return [0, 0, 0]
     }
-
   }
 }
